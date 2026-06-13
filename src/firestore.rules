@@ -1,0 +1,14 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /massgame/state {
+      allow read: if true;
+      allow write: if true;
+    }
+    match /massgame/state/log/{entry} {
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if true;
+    }
+  }
+}

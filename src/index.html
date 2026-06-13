@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mass Game — Central Points System</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+
+  :root {
+    --gold: #D4AF37;
+    --gold-light: #F0D060;
+    --gold-dim: #8C7320;
+    --ink: #0E0E12;
+    --ink2: #1A1A22;
+    --surface: #16161F;
+    --surface2: #1E1E2C;
+    --surface3: #252535;
+    --muted: #6B6B88;
+    --text: #E8E8F0;
+    --text2: #9898B8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body { font-family: 'DM Sans', sans-serif; background: var(--ink); color: var(--text); min-height: 100vh; }
+
+  #landing {
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 2rem;
+    position: relative; overflow: hidden;
+  }
+
+  #landing::before {
+    content: '';
+    position: absolute;
+    width: 700px; height: 700px; border-radius: 50%;
+    background: radial-gradient(circle, #D4AF3708 0%, transparent 70%);
+    top: 50%; left: 50%; transform: translate(-50%,-50%);
+    pointer-events: none;
+  }
+
+  .landing-eyebrow {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.72rem; font-weight: 700;
+    letter-spacing: 0.3em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 1rem;
+  }
+
+  .landing-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2.2rem, 6vw, 3.8rem);
+    font-weight: 800; text-align: center;
+    line-height: 1.08; letter-spacing: -0.02em;
+    margin-bottom: 0.8rem;
+  }
+
+  .landing-sub { font-size: 0.9rem; color: var(--text2); text-align: center; margin-bottom: 3rem; }
+
+  .mode-cards {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 1.25rem; max-width: 520px; width: 100%;
+  }
+
+  .mode-card {
+    background: var(--surface);
+    border: 1px solid #ffffff10;
+    border-radius: 22px; padding: 2rem 1.5rem;
+    text-align: center; cursor: pointer;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+  .mode-card:hover { transform: translateY(-4px); }
+  .mode-card.guest:hover  { border-color: #4FC3F740; }
+  .mode-card.master:hover { border-color: #D4AF3740; }
+
+  .mode-card-icon { font-size: 2.4rem; margin-bottom: 1rem; display: block; }
+
+  .mode-card-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.95rem; font-weight: 700;
+    letter-spacing: 0.07em; text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+  .mode-card.guest  .mode-card-title { color: #4FC3F7; }
+  .mode-card.master .mode-card-title { color: var(--gold); }
+
+  .mode-card-desc { font-size: 0.78rem; color: var(--text2); line-height: 1.55; margin-bottom: 1rem; }
+
+  .mode-pill {
+    display: inline-block; font-size: 0.63rem; font-weight: 700;
+    letter-spacing: 0.09em; text-transform: uppercase;
+    padding: 0.22rem 0.65rem; border-radius: 20px;
+  }
+  .mode-card.guest  .mode-pill { background:#4FC3F712;color:#4FC3F7;border:1px solid #4FC3F725; }
+  .mode-card.master .mode-pill { background:#D4AF3712;color:var(--gold);border:1px solid #D4AF3730; }
+
+  #loginScreen {
+    display: none; min-height: 100vh;
+    align-items: center; justify-content: center;
+    flex-direction: column; padding: 2rem;
+  }
+
+  .login-box {
+    background: var(--surface); border: 1px solid #ffffff15;
+    border-radius: 22px; padding: 2.5rem 2rem;
+    max-width: 360px; width: 100%; text-align: center;
+  }
+
+  .login-icon {
+    width: 68px; height: 68px; border-radius: 50%;
+    background: #D4AF3712; border: 1px solid #D4AF3730;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2rem; margin: 0 auto 1.25rem;
+  }
+
+  .login-title { font-family:'Syne',sans-serif; font-size:1.1rem; font-weight:700; color:var(--gold); margin-bottom:0.4rem; }
+  .login-sub   { font-size:0.82rem; color:var(--text2); margin-bottom:1.75rem; line-height:1.5; }
+  .login-error { font-size:0.8rem; color:#EF5350; margin-top:0.6rem; min-height:1.2rem; }
+
+  #app { display: none; }
+
+  header {
+    background: var(--ink2); border-bottom: 1px solid #ffffff18;
+    padding: 0 2rem; display: flex; align-items: center;
+    justify-content: space-between; height: 64px;
+    position: sticky; top: 0; z-index: 100; gap: 1rem;
+  }
+
+  .logo {
+    font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 800;
+    letter-spacing: 0.12em; color: var(--gold); text-transform: uppercase;
+    white-space: nowrap; flex-shrink: 0;
+  }
+
+  .nav-tabs { display: flex; gap: 0.2rem; flex-wrap: wrap; }
+
+  .nav-tab {
+    font-family: 'DM Sans', sans-serif; font-size: 0.78rem; font-weight: 500;
+    letter-spacing: 0.05em; text-transform: uppercase;
+    padding: 0.4rem 0.85rem; border-radius: 6px;
+    border: 1px solid transparent; background: transparent;
+    color: var(--text2); cursor: pointer; transition: all 0.15s; white-space: nowrap;
+  }
+  .nav-tab:hover  { color: var(--text); background: var(--surface2); }
+  .nav-tab.active { color: var(--gold); border-color: var(--gold-dim); background: #D4AF3712; }
+  .nav-tab.hidden { display: none; }
+
+  .header-right { display:flex; align-items:center; gap:0.75rem; flex-shrink:0; }
+
+  .mode-badge {
+    font-size: 0.68rem; font-weight: 700;
+    letter-spacing: 0.07em; text-transform: uppercase;
+    padding: 0.3rem 0.8rem; border-radius: 20px;
+  }
+  .mode-badge.guest  { background:#4FC3F712;color:#4FC3F7;border:1px solid #4FC3F730; }
+  .mode-badge.master { background:#D4AF3712;color:var(--gold);border:1px solid var(--gold-dim); }
+
+  .sync-dot { width:7px;height:7px;border-radius:50%;background:#66BB6A;display:inline-block;margin-right:0.35rem;transition:opacity 0.15s; }
+  .sync-dot.flash { animation:syncFlash 0.4s ease; }
+  @keyframes syncFlash { 0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.3;transform:scale(1.3)} }
+
+  .btn-exit {
+    font-size:0.75rem;font-weight:500;padding:0.35rem 0.8rem;border-radius:6px;
+    border:1px solid #ffffff20;background:transparent;color:var(--text2);
+    cursor:pointer;transition:all 0.15s;white-space:nowrap;
+  }
+  .btn-exit:hover { background:var(--surface2);color:var(--text); }
+
+  .container { max-width:1280px;margin:0 auto;padding:2rem; }
+
+  .page-title {
+    font-family:'Syne',sans-serif;font-size:1.45rem;font-weight:800;
+    letter-spacing:0.04em;text-transform:uppercase;color:var(--gold);
+  }
+
+  .section-sub { font-size:0.82rem;color:var(--text2);margin-bottom:1.25rem;margin-top:0.3rem; }
+
+  .scoreboard-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem; }
+
+  .action-panel { background:var(--surface);border:1px solid #ffffff10;border-radius:16px;padding:1.5rem;margin-top:1.25rem; }
+
+  .panel-title {
+    font-family:'Syne',sans-serif;font-size:0.78rem;font-weight:700;
+    letter-spacing:0.1em;text-transform:uppercase;color:var(--text2);margin-bottom:1.25rem;
+  }
+
+  .action-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:1rem;align-items:end; }
+
+  .form-group { display:flex;flex-direction:column;gap:0.4rem; }
+
+  .form-label { font-size:0.71rem;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:var(--text2); }
+
+  .live-balance { font-size:0.75rem;color:var(--gold);font-weight:500;margin-top:0.15rem;min-height:1.1rem; }
+
+  input[type="number"],input[type="text"],input[type="password"] {
+    background:var(--surface3);border:1px solid #ffffff15;border-radius:8px;
+    color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.9rem;
+    padding:0.5rem 0.85rem;outline:none;width:100%;transition:border-color 0.15s;
+  }
+  input[type="number"] { text-align:center; }
+  input:focus { border-color:var(--gold-dim); }
+
+  select {
+    background:var(--surface3);border:1px solid #ffffff15;border-radius:8px;
+    color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.9rem;
+    padding:0.5rem 0.85rem;outline:none;cursor:pointer;width:100%;
+    -webkit-appearance:none;transition:border-color 0.15s;
+  }
+  select:focus { border-color:var(--gold-dim); }
+
+  .btn { font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:500;padding:0.55rem 1.4rem;border-radius:8px;border:none;cursor:pointer;transition:all 0.15s; }
+  .btn-gold { background:var(--gold);color:var(--ink); }
+  .btn-gold:hover { background:var(--gold-light); }
+  .btn-outline { background:transparent;color:var(--text2);border:1px solid #ffffff20; }
+  .btn-outline:hover { background:var(--surface2);color:var(--text); }
+  .btn:disabled { opacity:0.5;cursor:not-allowed; }
+
+  .house-cards { display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1.25rem;margin-bottom:2rem; }
+
+  .house-card { background:var(--surface);border:1px solid #ffffff10;border-radius:16px;overflow:hidden;transition:transform 0.15s; }
+  .house-card:hover { transform:translateY(-2px); }
+
+  .house-card-header { padding:1rem 1.25rem 0.75rem;border-bottom:1px solid #ffffff0d;display:flex;align-items:center;gap:0.75rem; }
+  .house-dot { width:10px;height:10px;border-radius:50%;flex-shrink:0; }
+  .house-name { font-family:'Syne',sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:0.07em;text-transform:uppercase; }
+  .house-total { margin-left:auto;font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:800;color:var(--gold); }
+  .house-traits { padding:1rem 1.25rem;display:flex;flex-direction:column;gap:0.6rem; }
+  .trait-row { display:flex;align-items:center;gap:0.6rem; }
+  .trait-bar-wrap { flex:1;height:4px;background:#ffffff10;border-radius:2px;overflow:hidden; }
+  .trait-bar { height:100%;border-radius:2px;transition:width 0.4s ease; }
+  .trait-val { font-size:0.78rem;font-weight:500;min-width:28px;text-align:right;color:var(--text2); }
+
+  .log-table { width:100%;border-collapse:collapse;font-size:0.85rem; }
+  .log-table th { font-family:'Syne',sans-serif;font-size:0.68rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text2);text-align:left;padding:0.6rem 0.8rem;border-bottom:1px solid #ffffff12; }
+  .log-table td { padding:0.65rem 0.8rem;border-bottom:1px solid #ffffff08;color:var(--text);vertical-align:middle; }
+  .log-table tr:last-child td { border-bottom:none; }
+
+  .badge { display:inline-block;font-size:0.68rem;font-weight:700;padding:0.2rem 0.6rem;border-radius:20px;letter-spacing:0.04em; }
+  .badge-add     { background:#66BB6A20;color:#66BB6A; }
+  .badge-deduct  { background:#EF535020;color:#EF5350; }
+  .badge-shop    { background:#FFB30020;color:#FFB300; }
+
+  .rank-1 { color:#D4AF37; }
+  .rank-2 { color:#C0C0C0; }
+  .rank-3 { color:#CD7F32; }
+
+  .setup-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.5rem;margin-top:1.5rem; }
+  .house-setup-card { background:var(--surface);border:1px solid #ffffff12;border-radius:16px;padding:1.5rem;position:relative;overflow:hidden; }
+  .house-setup-card::before { content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--house-color); }
+  .house-label { font-family:'Syne',sans-serif;font-size:0.88rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:1.2rem;color:var(--house-color); }
+  .trait-input-row { display:flex;align-items:center;justify-content:space-between;margin-bottom:0.8rem;gap:0.75rem; }
+  .trait-icon { width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:700;flex-shrink:0; }
+  .trait-name { font-size:0.82rem;color:var(--text2);flex:1;font-weight:500; }
+
+  .config-box { background:var(--surface2);border:1px solid #ffffff10;border-radius:12px;padding:1.25rem;margin-top:1.5rem; }
+  .divider { border:none;border-top:1px solid #ffffff10;margin:1.5rem 0; }
+
+  #toast-container { position:fixed;bottom:2rem;right:2rem;z-index:9999;display:flex;flex-direction:column;gap:0.5rem;pointer-events:none; }
+  .toast { background:var(--surface2);border:1px solid #ffffff15;border-radius:10px;padding:0.75rem 1.1rem;font-size:0.84rem;max-width:300px;animation:slideIn 0.2s ease;display:flex;align-items:center;gap:0.5rem; }
+  .toast.success { border-color:#66BB6A50; }
+  .toast.error   { border-color:#EF535050; }
+  .toast.warning { border-color:#FFB30050; }
+  @keyframes slideIn { from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)} }
+
+  .modal-backdrop { display:none;position:fixed;inset:0;background:#000b;z-index:500;align-items:center;justify-content:center; }
+  .modal-backdrop.open { display:flex; }
+  .modal { background:var(--surface);border:1px solid #ffffff18;border-radius:18px;padding:2rem;max-width:440px;width:90%; }
+  .modal-title { font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;margin-bottom:1rem; }
+  .modal-actions { display:flex;gap:0.75rem;justify-content:flex-end;margin-top:1.5rem; }
+
+  #loadingOverlay {
+    display:none;position:fixed;inset:0;background:#0E0E12cc;z-index:1000;
+    align-items:center;justify-content:center;flex-direction:column;gap:1rem;
+  }
+  #loadingOverlay.show { display:flex; }
+  .spinner { width:36px;height:36px;border:3px solid #ffffff20;border-top-color:var(--gold);border-radius:50%;animation:spin 0.8s linear infinite; }
+  @keyframes spin { to{transform:rotate(360deg)} }
+
+  @media(max-width:560px) {
+    .mode-cards { grid-template-columns:1fr; }
+    .container { padding:1rem; }
+    header { padding:0 1rem; }
+    .action-grid { grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div id="loadingOverlay">
+  <div class="spinner"></div>
+  <div style="font-size:0.85rem;color:var(--text2);">Connecting to server…</div>
+</div>
+
+<div id="landing">
+  <div class="landing-eyebrow">⚔ Mass Game HQ</div>
+  <h1 class="landing-title">Central Points<br>System</h1>
+  <p class="landing-sub">Choose your access mode to continue</p>
+  <div class="mode-cards">
+    <div class="mode-card guest" onclick="enterGuest()">
+      <span class="mode-card-icon">🎮</span>
+      <div class="mode-card-title">Game Master</div>
+      <div class="mode-card-desc">View the live scoreboard and key in station points</div>
+      <div class="mode-pill">No login required</div>
+    </div>
+    <div class="mode-card master" onclick="showLogin()">
+      <span class="mode-card-icon">👑</span>
+      <div class="mode-card-title">Main Master</div>
+      <div class="mode-card-desc">Full access — shop, transaction log, setup & config</div>
+      <div class="mode-pill">Password required</div>
+    </div>
+  </div>
+</div>
+
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-icon">👑</div>
+    <div class="login-title">Main Master Access</div>
+    <div class="login-sub">Enter the master password to unlock all features</div>
+    <div class="form-group">
+      <input type="password" id="masterPwInput" placeholder="Password" onkeydown="if(event.key==='Enter')attemptLogin()">
+    </div>
+    <div class="login-error" id="loginError"></div>
+    <button class="btn btn-gold" onclick="attemptLogin()" style="width:100%;margin-top:0.85rem;">Enter →</button>
+    <button class="btn-exit" onclick="backToLanding()" style="width:100%;margin-top:0.6rem;border-radius:8px;padding:0.5rem 1rem;">← Back</button>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<div class="modal-backdrop" id="confirmModal">
+  <div class="modal">
+    <div class="modal-title" id="confirmTitle">Confirm</div>
+    <div id="confirmBody" style="font-size:0.88rem;color:var(--text2);line-height:1.65;"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-gold" id="confirmBtn">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div id="app">
+  <header>
+    <div class="logo">⚔ Mass Game HQ</div>
+    <nav class="nav-tabs" id="navTabs">
+      <button class="nav-tab active" data-page="scoreboard" onclick="showPage('scoreboard')">Scoreboard</button>
+      <button class="nav-tab"        data-page="add"        onclick="showPage('add')">Add Points</button>
+      <button class="nav-tab master-only" data-page="shop"  onclick="showPage('shop')">Shop</button>
+      <button class="nav-tab master-only" data-page="log"   onclick="showPage('log')">Log</button>
+      <button class="nav-tab master-only" data-page="setup" onclick="showPage('setup')">Setup</button>
+    </nav>
+    <div class="header-right">
+      <div class="mode-badge" id="modeBadge"></div>
+      <button class="btn-exit" onclick="exitToLanding()">Exit</button>
+    </div>
+  </header>
+
+  <div id="page-scoreboard" class="container">
+    <div class="scoreboard-header">
+      <div class="page-title">Live Scoreboard</div>
+    </div>
+    <div class="house-cards" id="houseCards"></div>
+    <div class="action-panel">
+      <div class="panel-title">Rankings</div>
+      <div style="overflow-x:auto;">
+        <table class="log-table">
+          <thead><tr>
+            <th>#</th><th>House</th>
+            <th style="color:#4FC3F7">Intel</th>
+            <th style="color:#EF5350">Courage</th>
+            <th style="color:#66BB6A">Agility</th>
+            <th style="color:#FFB300">Luck</th>
+            <th style="color:#AB47BC">Teamwork</th>
+            <th>Total</th>
+          </tr></thead>
+          <tbody id="rankBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="page-add" class="container" style="display:none;">
+    <div class="page-title">Adjust Trait Points</div>
+    <p class="section-sub">Select house, trait, operation and points amount.</p>
+    <div class="action-panel">
+      <div class="action-grid">
+        <div class="form-group">
+          <label class="form-label">House</label>
+          <select id="addHouse" onchange="updateLiveBalances()"></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Trait</label>
+          <select id="addTrait" onchange="updateLiveBalances()">
+            <option value="intelligence">🔵 Intelligence</option>
+            <option value="courage">🔴 Courage</option>
+            <option value="agility">🟢 Agility</option>
+            <option value="luck">🟡 Luck</option>
+            <option value="teamwork">🟣 Teamwork</option>
+          </select>
+          <div class="live-balance" id="addBalance"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Operation</label>
+          <select id="addOp" onchange="updateAddBtn()">
+            <option value="add">+ Add points</option>
+            <option value="deduct">− Deduct points</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Points</label>
+          <input type="number" id="addPoints" min="1" max="9999" value="10">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Station / Reason</label>
+          <input type="text" id="addReason" placeholder="e.g. Station 3 — Puzzle">
+        </div>
+        <div class="form-group" style="justify-content:flex-end;">
+          <button class="btn" id="addSubmitBtn" onclick="submitAdd()">+ Add Points</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="page-shop" class="container" style="display:none;">
+    <div class="scoreboard-header">
+      <div class="page-title">🛒 Shop</div>
+    </div>
+    <p class="section-sub">Deduct points for item purchases.</p>
+    <div class="action-panel">
+      <div class="panel-title">Purchase Entry</div>
+      <div class="action-grid">
+        <div class="form-group">
+          <label class="form-label">House</label>
+          <select id="shopHouse" onchange="updateLiveBalances()"></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Trait to Deduct From</label>
+          <select id="shopTrait" onchange="updateLiveBalances()">
+            <option value="intelligence">Intelligence</option>
+            <option value="courage">Courage</option>
+            <option value="agility">Agility</option>
+            <option value="luck">Luck</option>
+            <option value="teamwork">Teamwork</option>
+          </select>
+          <div class="live-balance" id="shopBalance"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Points to Deduct</label>
+          <input type="number" id="shopPoints" min="1" max="9999" value="10">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Item Purchased</label>
+          <input type="text" id="shopItem" placeholder="e.g. Health Potion x2">
+        </div>
+        <div class="form-group" style="justify-content:flex-end;">
+          <button class="btn" id="shopSubmitBtn" style="background:#EF535020;color:#EF5350;border:1px solid #EF535040;" onclick="submitShopDeduct()">− Deduct Points</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="page-log" class="container" style="display:none;">
+    <div class="scoreboard-header">
+      <div class="page-title">Transaction Log</div>
+    </div>
+    <div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:1rem;">
+      <select id="logFilterHouse" onchange="resetLogPagination()" style="width:auto;min-width:150px;"><option value="">All Houses</option></select>
+      <select id="logFilterType"  onchange="resetLogPagination()" style="width:auto;min-width:130px;">
+        <option value="">All Types</option>
+        <option value="add">Added</option>
+        <option value="deduct">Deducted</option>
+        <option value="shop">Shop</option>
+      </select>
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="log-table">
+        <thead><tr><th>Time</th><th>House</th><th>Trait</th><th>Change</th><th>Type</th><th>Reason / Item</th></tr></thead>
+        <tbody id="logBody"></tbody>
+      </table>
+    </div>
+    <div style="text-align:center;margin-top:1rem;">
+      <button class="btn btn-outline" id="logLoadMore" onclick="loadMoreLog()" style="display:none;">Load more</button>
+    </div>
+  </div>
+
+  <div id="page-setup" class="container" style="display:none;">
+    <div class="page-title">Setup & Configuration</div>
+    <p class="section-sub">Manage house names, starting points and master password.</p>
+
+    <div class="setup-grid" id="setupGrid"></div>
+
+    <div style="margin-top:1.5rem;display:flex;gap:0.75rem;flex-wrap:wrap;">
+      <button class="btn btn-gold" onclick="saveSetup()">Save Starting Points</button>
+      <button class="btn btn-outline" onclick="resetAllData()" style="color:#EF5350;border-color:#EF535040;">⚠ Reset All Data</button>
+    </div>
+
+    <hr class="divider">
+
+    <div class="config-box">
+      <div class="panel-title" style="margin-bottom:0.75rem;">House Names</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:0.75rem;" id="houseNameFields"></div>
+      <button class="btn btn-outline" onclick="saveHouseNames()" style="margin-top:0.75rem;">Save Names</button>
+    </div>
+
+    <hr class="divider">
+
+    <div class="config-box">
+      <div class="panel-title" style="margin-bottom:0.75rem;">👑 Main Master Password</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:0.75rem;align-items:flex-end;">
+        <div class="form-group">
+          <label class="form-label">New Password</label>
+          <input type="password" id="newPw" placeholder="New password">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirm</label>
+          <input type="password" id="confirmPw" placeholder="Confirm">
+        </div>
+        <button class="btn btn-outline" onclick="changePassword()" style="height:38px;align-self:flex-end;">Update</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyChTh98RTvcwFKmXza-nBjLxMnIDp6CR9M",
+  authDomain: "mass-game-system-5af61.firebaseapp.com",
+  projectId: "mass-game-system-5af61",
+  storageBucket: "mass-game-system-5af61.firebasestorage.app",
+  messagingSenderId: "131067079912",
+  appId: "1:131067079912:web:6f36737ba291dc3023ad5d"
+};
+
+const HOUSE_COLORS  = ['#E53935','#1E88E5','#43A047','#FB8C00','#8E24AA'];
+const TRAITS        = ['intelligence','courage','agility','luck','teamwork'];
+const TRAIT_COLORS  = {intelligence:'#4FC3F7',courage:'#EF5350',agility:'#66BB6A',luck:'#FFB300',teamwork:'#AB47BC'};
+const TRAIT_ABBR    = {intelligence:'INT',courage:'COR',agility:'AGI',luck:'LCK',teamwork:'TWK'};
+const TRAIT_EMOJI   = {intelligence:'🔵',courage:'🔴',agility:'🟢',luck:'🟡',teamwork:'🟣'};
+const LOG_PAGE_SIZE = 50;
+
+let currentMode = null;
+let liveState = null;
+let db = null;
+let stateRef = null;
+let logCol = null;
+let _processing = false;
+let _logLastDoc = null;
+let _logHasMore = false;
+let _logEntries = [];
+let _unsubState = null;
+
+class InsufficientPointsError extends Error {
+  constructor(balance) {
+    super('Insufficient points');
+    this.balance = balance;
+  }
+}
+
+function defaultHouses() {
+  return [
+    {name:'House Alpha', points:{intelligence:0,courage:0,agility:0,luck:0,teamwork:0}},
+    {name:'House Beta',  points:{intelligence:0,courage:0,agility:0,luck:0,teamwork:0}},
+    {name:'House Gamma', points:{intelligence:0,courage:0,agility:0,luck:0,teamwork:0}},
+    {name:'House Delta', points:{intelligence:0,courage:0,agility:0,luck:0,teamwork:0}},
+    {name:'House Omega', points:{intelligence:0,courage:0,agility:0,luck:0,teamwork:0}},
+  ];
+}
+
+function getState() {
+  if (liveState) return liveState;
+  return { houses: defaultHouses(), pwHash: null, pwSalt: null };
+}
+
+async function hashPassword(password, salt) {
+  const enc = new TextEncoder();
+  const data = enc.encode(salt + password + salt);
+  const hashBuf = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(hashBuf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+function generateSalt() {
+  return Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+const _login = { count:0, lockedUntil:0 };
+const MAX_ATTEMPTS = 5;
+const LOCKOUT_MS = 30000;
+
+function useEmulator() {
+  return new URLSearchParams(location.search).has('useEmulator') ||
+    location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+}
+
+async function initFirebase() {
+  document.getElementById('loadingOverlay').classList.add('show');
+  try {
+    if (typeof firebaseConfigOverride !== 'undefined') {
+      Object.assign(firebaseConfig, firebaseConfigOverride);
+    }
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+    if (useEmulator()) {
+      db.useEmulator('127.0.0.1', 8080);
+    }
+    try {
+      await db.enablePersistence({ synchronizeTabs: true });
+    } catch (e) {
+      if (e.code !== 'failed-precondition' && e.code !== 'unimplemented') console.warn('Persistence:', e);
+    }
+    stateRef = db.collection('massgame').doc('state');
+    logCol = stateRef.collection('log');
+    await ensureStateDoc();
+    subscribeState();
+  } catch (e) {
+    console.error(e);
+    toast('Failed to connect — check Firebase config', 'error');
+  } finally {
+    document.getElementById('loadingOverlay').classList.remove('show');
+  }
+}
+
+async function ensureStateDoc() {
+  const snap = await stateRef.get();
+  if (!snap.exists) {
+    const salt = generateSalt();
+    const hash = await hashPassword('admin1234', salt);
+    await stateRef.set({ houses: defaultHouses(), pwHash: hash, pwSalt: salt });
+  }
+}
+
+function subscribeState() {
+  if (_unsubState) _unsubState();
+  _unsubState = stateRef.onSnapshot(snap => {
+    if (!snap.exists) return;
+    const data = snap.data();
+    liveState = {
+      houses: data.houses || defaultHouses(),
+      pwHash: data.pwHash,
+      pwSalt: data.pwSalt
+    };
+    flashSyncDot();
+    const scoreVisible = document.getElementById('page-scoreboard').style.display !== 'none';
+    const setupVisible = document.getElementById('page-setup').style.display !== 'none';
+    if (scoreVisible) renderScoreboard();
+    if (setupVisible) renderSetup();
+    updateLiveBalances();
+    if (currentMode) populateHouseSelects();
+  }, err => {
+    console.error(err);
+    toast('Connection lost — retrying…', 'warning');
+  });
+}
+
+function flashSyncDot() {
+  const dot = document.querySelector('.sync-dot');
+  if (!dot) return;
+  dot.classList.remove('flash');
+  void dot.offsetWidth;
+  dot.classList.add('flash');
+}
+
+function setProcessing(on) {
+  _processing = on;
+  ['addSubmitBtn','shopSubmitBtn'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.disabled = on;
+      if (on && id === 'addSubmitBtn') el.dataset.prevText = el.textContent;
+      if (on && id === 'addSubmitBtn') el.textContent = 'Processing…';
+      if (!on && id === 'addSubmitBtn' && el.dataset.prevText) el.textContent = el.dataset.prevText;
+    }
+  });
+}
+
+async function applyPointTransaction({ hIdx, trait, change, type, reason }) {
+  const pts = Math.abs(change);
+  const isDeduct = change < 0;
+
+  await db.runTransaction(async transaction => {
+    const snap = await transaction.get(stateRef);
+    if (!snap.exists) throw new Error('Game state not found');
+    const data = snap.data();
+    const houses = JSON.parse(JSON.stringify(data.houses || defaultHouses()));
+    const balance = houses[hIdx].points[trait] || 0;
+
+    if (isDeduct && balance < pts) {
+      throw new InsufficientPointsError(balance);
+    }
+
+    houses[hIdx].points[trait] = balance + change;
+    transaction.update(stateRef, { houses });
+
+    const logRef = logCol.doc();
+    transaction.set(logRef, {
+      ts: new Date().toISOString(),
+      hIdx,
+      house: houses[hIdx].name,
+      trait,
+      change,
+      type,
+      reason
+    });
+  });
+}
+
+async function updateStateDoc(fields) {
+  await stateRef.update(fields);
+}
+
+async function deleteAllLogEntries() {
+  let hasMore = true;
+  while (hasMore) {
+    const snap = await logCol.limit(500).get();
+    if (snap.empty) { hasMore = false; break; }
+    const batch = db.batch();
+    snap.docs.forEach(d => batch.delete(d.ref));
+    await batch.commit();
+    hasMore = snap.size === 500;
+  }
+}
+
+function enterGuest() { currentMode='guest'; startApp(); }
+
+function showLogin() {
+  document.getElementById('landing').style.display='none';
+  document.getElementById('loginScreen').style.display='flex';
+  setTimeout(()=>document.getElementById('masterPwInput').focus(),100);
+}
+
+async function attemptLogin() {
+  const errEl = document.getElementById('loginError');
+  const input = document.getElementById('masterPwInput');
+  const pw = input.value;
+  input.value = '';
+
+  if (Date.now() < _login.lockedUntil) {
+    const secs = Math.ceil((_login.lockedUntil - Date.now()) / 1000);
+    errEl.textContent = `Too many attempts. Wait ${secs}s.`;
+    return;
+  }
+  if (!pw) { errEl.textContent = 'Enter a password.'; return; }
+
+  const s = getState();
+  if (!s.pwSalt || !s.pwHash) {
+    errEl.textContent = 'Server not ready — try again.';
+    return;
+  }
+  const hash = await hashPassword(pw, s.pwSalt);
+
+  if (hash === s.pwHash) {
+    _login.count = 0;
+    _login.lockedUntil = 0;
+    currentMode = 'master';
+    document.getElementById('loginScreen').style.display = 'none';
+    errEl.textContent = '';
+    startApp();
+  } else {
+    _login.count++;
+    const remaining = MAX_ATTEMPTS - _login.count;
+    if (_login.count >= MAX_ATTEMPTS) {
+      _login.lockedUntil = Date.now() + LOCKOUT_MS;
+      _login.count = 0;
+      errEl.textContent = 'Too many failed attempts. Locked for 30 seconds.';
+    } else {
+      errEl.textContent = `Incorrect password. ${remaining} attempt${remaining===1?'':'s'} remaining.`;
+    }
+    input.focus();
+  }
+}
+
+function backToLanding() {
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('landing').style.display='flex';
+  document.getElementById('masterPwInput').value='';
+  document.getElementById('loginError').textContent='';
+}
+
+function startApp() {
+  document.getElementById('landing').style.display='none';
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('app').style.display='block';
+  applyModeUI();
+  populateHouseSelects();
+  showPage('scoreboard');
+}
+
+function applyModeUI() {
+  const badge=document.getElementById('modeBadge');
+  document.querySelectorAll('.master-only').forEach(t=>{
+    t.classList.toggle('hidden', currentMode!=='master');
+  });
+  if (currentMode==='master') {
+    badge.textContent='👑 Main Master';
+    badge.className='mode-badge master';
+  } else {
+    badge.innerHTML='<span class="sync-dot"></span>Game Master';
+    badge.className='mode-badge guest';
+  }
+}
+
+function exitToLanding() {
+  currentMode=null;
+  document.getElementById('app').style.display='none';
+  document.getElementById('landing').style.display='flex';
+}
+
+function showPage(name) {
+  if (currentMode==='guest' && ['shop','log','setup'].includes(name)) return;
+  document.querySelectorAll('[id^="page-"]').forEach(el=>el.style.display='none');
+  document.getElementById('page-'+name).style.display='block';
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.toggle('active',t.dataset.page===name));
+  if (name==='scoreboard') renderScoreboard();
+  if (name==='log') { resetLogPagination(); renderLog(); }
+  if (name==='setup') renderSetup();
+  if (name==='add'||name==='shop') { populateHouseSelects(); updateLiveBalances(); }
+}
+
+function renderScoreboard() {
+  const s=getState();
+  const mx={};
+  TRAITS.forEach(t=>{ mx[t]=Math.max(...s.houses.map(h=>h.points[t]||0),1); });
+
+  document.getElementById('houseCards').innerHTML=s.houses.map((h,i)=>{
+    const total=TRAITS.reduce((a,t)=>a+(h.points[t]||0),0);
+    const color=HOUSE_COLORS[i];
+    const bars=TRAITS.map(t=>{
+      const v=h.points[t]||0;
+      return `<div class="trait-row">
+        <span style="font-size:0.68rem;font-weight:700;color:${TRAIT_COLORS[t]};min-width:28px;">${TRAIT_ABBR[t]}</span>
+        <div class="trait-bar-wrap"><div class="trait-bar" style="width:${Math.round(v/mx[t]*100)}%;background:${TRAIT_COLORS[t]};"></div></div>
+        <span class="trait-val">${v}</span>
+      </div>`;
+    }).join('');
+    return `<div class="house-card">
+      <div class="house-card-header">
+        <div class="house-dot" style="background:${color};"></div>
+        <span class="house-name" style="color:${color};">${h.name}</span>
+        <span class="house-total">${total}</span>
+      </div>
+      <div class="house-traits">${bars}</div>
+    </div>`;
+  }).join('');
+
+  const ranked=s.houses.map((h,i)=>({...h,idx:i,total:TRAITS.reduce((a,t)=>a+(h.points[t]||0),0)})).sort((a,b)=>b.total-a.total);
+  document.getElementById('rankBody').innerHTML=ranked.map((h,ri)=>`<tr>
+    <td class="${ri<3?'rank-'+(ri+1):''}" style="font-weight:700;">${ri+1}</td>
+    <td style="font-weight:500;color:${HOUSE_COLORS[h.idx]};">${h.name}</td>
+    ${TRAITS.map(t=>`<td>${h.points[t]||0}</td>`).join('')}
+    <td style="font-weight:700;color:var(--gold);">${h.total}</td>
+  </tr>`).join('');
+}
+
+function populateHouseSelects() {
+  const s=getState();
+  ['addHouse','shopHouse'].forEach(id=>{
+    const el=document.getElementById(id); if(!el) return;
+    el.innerHTML=s.houses.map((h,i)=>`<option value="${i}">${h.name}</option>`).join('');
+  });
+  const lf=document.getElementById('logFilterHouse');
+  if(lf){ const cur=lf.value; lf.innerHTML='<option value="">All Houses</option>'+s.houses.map((h,i)=>`<option value="${i}">${h.name}</option>`).join(''); lf.value=cur; }
+}
+
+function updateLiveBalances() {
+  const s = getState();
+  const addH = document.getElementById('addHouse');
+  const addT = document.getElementById('addTrait');
+  const addEl = document.getElementById('addBalance');
+  if (addH && addT && addEl && s.houses[addH.value]) {
+    const bal = s.houses[parseInt(addH.value)].points[addT.value] || 0;
+    addEl.textContent = `Current balance: ${bal}`;
+  }
+  const shopH = document.getElementById('shopHouse');
+  const shopT = document.getElementById('shopTrait');
+  const shopEl = document.getElementById('shopBalance');
+  if (shopH && shopT && shopEl && s.houses[shopH.value]) {
+    const bal = s.houses[parseInt(shopH.value)].points[shopT.value] || 0;
+    shopEl.textContent = `Current balance: ${bal}`;
+  }
+}
+
+function updateAddBtn() {
+  const op=document.getElementById('addOp').value;
+  const btn=document.getElementById('addSubmitBtn');
+  if(op==='deduct') { btn.style.cssText='background:#EF535020;color:#EF5350;border:1px solid #EF535040;'; btn.textContent='− Deduct Points'; }
+  else              { btn.style.cssText='background:#66BB6A20;color:#66BB6A;border:1px solid #66BB6A40;'; btn.textContent='+ Add Points'; }
+}
+
+async function submitAdd() {
+  if (_processing) return;
+  const hIdx=parseInt(document.getElementById('addHouse').value);
+  const trait=document.getElementById('addTrait').value;
+  const pts=parseInt(document.getElementById('addPoints').value);
+  const reason=document.getElementById('addReason').value.trim()||'Station';
+  const op=document.getElementById('addOp').value;
+
+  if(isNaN(pts)||pts<=0){ toast('Enter a valid positive number','error'); return; }
+
+  setProcessing(true);
+  try {
+    const change = op==='add' ? pts : -pts;
+    await applyPointTransaction({
+      hIdx, trait, change,
+      type: op==='add' ? 'add' : 'deduct',
+      reason
+    });
+    toast(`${op==='add'?'+':'−'}${pts} ${cap(trait)} → ${getState().houses[hIdx].name}`, op==='add'?'success':'warning');
+    document.getElementById('addPoints').value=10;
+    document.getElementById('addReason').value='';
+  } catch (e) {
+    if (e instanceof InsufficientPointsError) {
+      toast(`⚠ Insufficient points — another station spent points simultaneously. Current balance: ${e.balance}.`, 'error');
+    } else {
+      toast(e.message || 'Transaction failed', 'error');
+    }
+  } finally {
+    setProcessing(false);
+    updateAddBtn();
+  }
+}
+
+async function submitShopDeduct() {
+  const hIdx=parseInt(document.getElementById('shopHouse').value);
+  const trait=document.getElementById('shopTrait').value;
+  const pts=parseInt(document.getElementById('shopPoints').value);
+  const item=document.getElementById('shopItem').value.trim();
+  const s=getState();
+
+  if(isNaN(pts)||pts<=0){ toast('Enter valid points','error'); return; }
+  if(!item){ toast('Item name is required','error'); return; }
+
+  openConfirm('Confirm Purchase',
+    `Deduct <strong>${pts} ${cap(trait)}</strong> from <strong>${s.houses[hIdx].name}</strong> for <em>${item}</em>?`,
+    async()=>{
+      if (_processing) return;
+      setProcessing(true);
+      try {
+        await applyPointTransaction({
+          hIdx, trait, change: -pts, type: 'shop', reason: item
+        });
+        toast(`Deducted ${pts} ${cap(trait)} from ${getState().houses[hIdx].name}`,'success');
+        document.getElementById('shopItem').value='';
+        document.getElementById('shopPoints').value=10;
+      } catch (e) {
+        if (e instanceof InsufficientPointsError) {
+          toast(`⚠ Insufficient points — another station spent points simultaneously. Current balance: ${e.balance}.`, 'error');
+        } else {
+          toast(e.message || 'Transaction failed', 'error');
+        }
+      } finally {
+        setProcessing(false);
+      }
+    }
+  );
+}
+
+function buildLogQuery() {
+  const fh = document.getElementById('logFilterHouse').value;
+  const ft = document.getElementById('logFilterType').value;
+  let q = logCol.orderBy('ts', 'desc').limit(LOG_PAGE_SIZE);
+  if (fh !== '' && ft !== '') {
+    q = logCol.where('hIdx', '==', parseInt(fh)).where('type', '==', ft).orderBy('ts', 'desc').limit(LOG_PAGE_SIZE);
+  } else if (fh !== '') {
+    q = logCol.where('hIdx', '==', parseInt(fh)).orderBy('ts', 'desc').limit(LOG_PAGE_SIZE);
+  } else if (ft !== '') {
+    q = logCol.where('type', '==', ft).orderBy('ts', 'desc').limit(LOG_PAGE_SIZE);
+  }
+  if (_logLastDoc) q = q.startAfter(_logLastDoc);
+  return q;
+}
+
+function resetLogPagination() {
+  _logLastDoc = null;
+  _logEntries = [];
+  _logHasMore = false;
+}
+
+async function renderLog() {
+  populateHouseSelects();
+  if (!logCol) return;
+  try {
+    const snap = await buildLogQuery().get();
+    const entries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    if (_logLastDoc) {
+      _logEntries = _logEntries.concat(entries);
+    } else {
+      _logEntries = entries;
+    }
+    _logHasMore = snap.docs.length === LOG_PAGE_SIZE;
+    if (snap.docs.length) _logLastDoc = snap.docs[snap.docs.length - 1];
+
+    document.getElementById('logBody').innerHTML = _logEntries.map(e => formatLogRow(e)).join('') ||
+      '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:2rem;">No entries yet</td></tr>';
+    document.getElementById('logLoadMore').style.display = _logHasMore ? 'inline-block' : 'none';
+  } catch (e) {
+    console.error(e);
+    toast('Failed to load log', 'error');
+  }
+}
+
+function loadMoreLog() { renderLog(); }
+
+function formatLogRow(e) {
+  const d=new Date(e.ts);
+  const time=d.toLocaleDateString()+' '+d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  const color=e.change>0?'#66BB6A':'#EF5350';
+  const sign=e.change>0?'+':'';
+  const badge=e.type==='add'?'<span class="badge badge-add">▲ Added</span>':e.type==='shop'?'<span class="badge badge-shop">🛒 Shop</span>':'<span class="badge badge-deduct">▼ Deducted</span>';
+  return `<tr>
+    <td style="color:var(--text2);font-size:0.78rem;white-space:nowrap;">${time}</td>
+    <td style="font-weight:500;">${e.house}</td>
+    <td><span style="color:${TRAIT_COLORS[e.trait]};font-size:0.82rem;">${TRAIT_EMOJI[e.trait]} ${cap(e.trait)}</span></td>
+    <td style="font-weight:700;color:${color};">${sign}${e.change}</td>
+    <td>${badge}</td>
+    <td style="color:var(--text2);font-size:0.82rem;">${e.reason||''}</td>
+  </tr>`;
+}
+
+function renderSetup() {
+  const s=getState();
+  document.getElementById('setupGrid').innerHTML=s.houses.map((h,i)=>{
+    const color=HOUSE_COLORS[i];
+    return `<div class="house-setup-card" style="--house-color:${color};">
+      <div class="house-label">${h.name}</div>
+      ${TRAITS.map(t=>`<div class="trait-input-row">
+        <div class="trait-icon" style="background:${TRAIT_COLORS[t]}20;color:${TRAIT_COLORS[t]};">${TRAIT_ABBR[t]}</div>
+        <span class="trait-name">${cap(t)}</span>
+        <input type="number" style="width:80px;text-align:center;" min="0" max="99999" id="setup_${i}_${t}" value="${h.points[t]||0}">
+      </div>`).join('')}
+    </div>`;
+  }).join('');
+
+  document.getElementById('houseNameFields').innerHTML=s.houses.map((h,i)=>
+    `<div class="form-group">
+      <label class="form-label" style="color:${HOUSE_COLORS[i]};">House ${i+1}</label>
+      <input type="text" id="hname_${i}" value="${h.name}">
+    </div>`
+  ).join('');
+}
+
+async function saveSetup() {
+  const s=getState();
+  const houses = JSON.parse(JSON.stringify(s.houses));
+  houses.forEach((h,i)=>TRAITS.forEach(t=>{
+    const el=document.getElementById(`setup_${i}_${t}`);
+    if(el) h.points[t]=Math.max(0,parseInt(el.value)||0);
+  }));
+  try {
+    await updateStateDoc({ houses });
+    toast('Starting points saved','success');
+  } catch (e) {
+    toast('Save failed', 'error');
+  }
+}
+
+async function saveHouseNames() {
+  const s=getState();
+  const houses = JSON.parse(JSON.stringify(s.houses));
+  houses.forEach((h,i)=>{ const el=document.getElementById(`hname_${i}`); if(el&&el.value.trim()) h.name=el.value.trim(); });
+  try {
+    await updateStateDoc({ houses });
+    renderSetup();
+    populateHouseSelects();
+    toast('House names updated','success');
+  } catch (e) {
+    toast('Save failed', 'error');
+  }
+}
+
+async function changePassword() {
+  const np=document.getElementById('newPw').value;
+  const cp=document.getElementById('confirmPw').value;
+  if(!np){ toast('Password cannot be empty','error'); return; }
+  if(np.length < 6){ toast('Password must be at least 6 characters','error'); return; }
+  if(np!==cp){ toast('Passwords do not match','error'); return; }
+  const salt = generateSalt();
+  const hash = await hashPassword(np, salt);
+  try {
+    await updateStateDoc({ pwHash: hash, pwSalt: salt });
+    document.getElementById('newPw').value='';
+    document.getElementById('confirmPw').value='';
+    toast('Master password updated','success');
+  } catch (e) {
+    toast('Update failed', 'error');
+  }
+}
+
+function resetAllData() {
+  openConfirm('⚠ Reset All Data','This will clear <strong>all points and logs</strong>. House names and password are kept. This cannot be undone.',async()=>{
+    const s=getState();
+    const houses = JSON.parse(JSON.stringify(s.houses));
+    houses.forEach(h=>TRAITS.forEach(t=>h.points[t]=0));
+    try {
+      await updateStateDoc({ houses });
+      await deleteAllLogEntries();
+      resetLogPagination();
+      renderSetup();
+      toast('All data reset','warning');
+    } catch (e) {
+      toast('Reset failed', 'error');
+    }
+  });
+}
+
+function toast(msg,type='') {
+  const el=document.createElement('div');
+  el.className='toast '+type;
+  el.innerHTML=`<span style="font-weight:700;">${{success:'✓',error:'✕',warning:'⚠'}[type]||'•'}</span> ${msg}`;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(()=>el.remove(),3500);
+}
+
+let _cb=null;
+function openConfirm(title,body,cb) {
+  document.getElementById('confirmTitle').textContent=title;
+  document.getElementById('confirmBody').innerHTML=body;
+  _cb=cb||null;
+  document.getElementById('confirmBtn').style.display=cb?'inline-block':'none';
+  document.getElementById('confirmModal').classList.add('open');
+}
+function closeModal() { document.getElementById('confirmModal').classList.remove('open'); }
+document.getElementById('confirmBtn').onclick=()=>{ closeModal(); if(_cb)_cb(); };
+
+function cap(s) { return s.charAt(0).toUpperCase()+s.slice(1); }
+
+updateAddBtn();
+initFirebase();
+</script>
+</body>
+</html>

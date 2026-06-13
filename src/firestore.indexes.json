@@ -1,0 +1,30 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "log",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "hIdx", "order": "ASCENDING" },
+        { "fieldPath": "ts", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "log",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "type", "order": "ASCENDING" },
+        { "fieldPath": "ts", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "log",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "hIdx", "order": "ASCENDING" },
+        { "fieldPath": "type", "order": "ASCENDING" },
+        { "fieldPath": "ts", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

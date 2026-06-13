@@ -1,0 +1,19 @@
+{
+  "name": "mass-game-points",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "description": "Mass Game Central Points System — real-time house scoring for live events",
+  "scripts": {
+    "serve": "npx --yes serve src -p 3000",
+    "emulator": "node node_modules/firebase-tools/lib/bin/firebase.js emulators:start --only firestore --project mass-game-points",
+    "test:stress": "node stress-test/concurrent-transactions.test.js",
+    "test:e2e": "node node_modules/@playwright/test/cli.js test",
+    "test": "pnpm test:stress && pnpm test:e2e"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0",
+    "firebase": "^11.0.2",
+    "firebase-tools": "^13.27.0"
+  }
+}
