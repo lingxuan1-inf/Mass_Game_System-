@@ -203,10 +203,29 @@
   input:focus { border-color:var(--gold-dim); }
 
   select {
-    background:var(--surface3);border:1px solid #ffffff15;border-radius:8px;
-    color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.9rem;
-    padding:0.5rem 0.85rem;outline:none;cursor:pointer;width:100%;
-    -webkit-appearance:none;transition:border-color 0.15s;
+    background:var(--surface3);
+    border:1px solid #ffffff15;
+    border-radius:8px;
+    color:var(--text);
+    font-family:'DM Sans',sans-serif;
+    font-size:0.9rem;
+    padding:0.5rem 2rem 0.5rem 0.85rem;
+    outline:none;
+    cursor:pointer;
+    width:100%;
+
+    appearance:none;
+    -webkit-appearance:none;
+    -moz-appearance:none;
+
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12'%3E%3Cpath fill='%23D4AF37' d='M2 4l4 4 4-4'/%3E%3C/svg%3E");
+
+    background-repeat:no-repeat;
+    background-position:right 10px center;
+    background-size:12px;
+
+    transition:border-color 0.15s;
   }
   select:focus { border-color:var(--gold-dim); }
 
@@ -409,7 +428,7 @@
         </div>
         <div class="form-group">
           <label class="form-label">Points</label>
-          <input type="number" id="addPoints" min="1" max="9999" value="10">
+          <input type="number" step = "1" inputmode = 'numeric' id="addPoints" min="1" max="300" value="10">
         </div>
         <div class="form-group">
           <label class="form-label">Station / Reason</label>
@@ -447,7 +466,7 @@
         </div>
         <div class="form-group">
           <label class="form-label">Points to Deduct</label>
-          <input type="number" id="shopPoints" min="1" max="9999" value="10">
+          <input type="number" step = "1" inputmode = 'numeric' id="shopPoints" min="1" max="300" value="10">
         </div>
         <div class="form-group">
           <label class="form-label">Item Purchased</label>
@@ -463,15 +482,6 @@
   <div id="page-log" class="container" style="display:none;">
     <div class="scoreboard-header">
       <div class="page-title">Transaction Log</div>
-    </div>
-    <div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:1rem;">
-      <select id="logFilterHouse" onchange="resetLogPagination()" style="width:auto;min-width:150px;"><option value="">All Houses</option></select>
-      <select id="logFilterType"  onchange="resetLogPagination()" style="width:auto;min-width:130px;">
-        <option value="">All Types</option>
-        <option value="add">Added</option>
-        <option value="deduct">Deducted</option>
-        <option value="shop">Shop</option>
-      </select>
     </div>
     <div style="overflow-x:auto;">
       <table class="log-table">
@@ -540,6 +550,10 @@ const TRAIT_COLORS  = {intelligence:'#4FC3F7',courage:'#EF5350',agility:'#66BB6A
 const TRAIT_ABBR    = {intelligence:'INT',courage:'COR',agility:'AGI',luck:'LCK',teamwork:'TWK'};
 const TRAIT_EMOJI   = {intelligence:'🔵',courage:'🔴',agility:'🟢',luck:'🟡',teamwork:'🟣'};
 const LOG_PAGE_SIZE = 50;
+const MAX_TRANSACTION_POINTS = 300; //maximum transaction
+const ACTION_COOLDOWN_MS = 10000;
+
+
 
 let currentMode = null;
 let liveState = null;
@@ -547,6 +561,7 @@ let db = null;
 let stateRef = null;
 let logCol = null;
 let _processing = false;
+let lastActionTime = 0;
 let _logLastDoc = null;
 let _logHasMore = false;
 let _logEntries = [];
@@ -677,6 +692,11 @@ function setProcessing(on) {
 
 async function applyPointTransaction({ hIdx, trait, change, type, reason }) {
   const pts = Math.abs(change);
+
+  if(pts> 300){
+      throw new Error("Transacation exceeds 300 point limit");
+    }
+
   const isDeduct = change < 0;
 
   await db.runTransaction(async transaction => {
@@ -859,8 +879,7 @@ function populateHouseSelects() {
     const el=document.getElementById(id); if(!el) return;
     el.innerHTML=s.houses.map((h,i)=>`<option value="${i}">${h.name}</option>`).join('');
   });
-  const lf=document.getElementById('logFilterHouse');
-  if(lf){ const cur=lf.value; lf.innerHTML='<option value="">All Houses</option>'+s.houses.map((h,i)=>`<option value="${i}">${h.name}</option>`).join(''); lf.value=cur; }
+  
 }
 
 function updateLiveBalances() {
@@ -881,6 +900,25 @@ function updateLiveBalances() {
   }
 }
 
+
+
+function canPerformAction(){
+  const now = Date.now();
+
+  if (now - lastActionTime < ACTION_COOLDOWN_MS){
+    const remaining = Math.ceil(
+      (ACTION_COOLDOWN_MS - (now - lastActionTime))/1000
+    );
+
+    toast(`please wait ${remaining}s before submitting again`,"warning");
+    return false;
+  }
+
+  lastActionTime = now;
+  return true;
+}
+
+
 function updateAddBtn() {
   const op=document.getElementById('addOp').value;
   const btn=document.getElementById('addSubmitBtn');
@@ -889,7 +927,10 @@ function updateAddBtn() {
 }
 
 async function submitAdd() {
+  if (!canPerformAction()) return;
+
   if (_processing) return;
+
   const hIdx=parseInt(document.getElementById('addHouse').value);
   const trait=document.getElementById('addTrait').value;
   const pts=parseInt(document.getElementById('addPoints').value);
@@ -898,6 +939,10 @@ async function submitAdd() {
 
   if(isNaN(pts)||pts<=0){ toast('Enter a valid positive number','error'); return; }
 
+  if (pts > MAX_TRANSACTION_POINTS){
+    toast("Maximum transaction is 300 points", "error");
+    return;
+  }
   setProcessing(true);
   try {
     const change = op==='add' ? pts : -pts;
@@ -922,6 +967,8 @@ async function submitAdd() {
 }
 
 async function submitShopDeduct() {
+  if (!canPerformAction()) return;
+
   const hIdx=parseInt(document.getElementById('shopHouse').value);
   const trait=document.getElementById('shopTrait').value;
   const pts=parseInt(document.getElementById('shopPoints').value);
@@ -930,6 +977,11 @@ async function submitShopDeduct() {
 
   if(isNaN(pts)||pts<=0){ toast('Enter valid points','error'); return; }
   if(!item){ toast('Item name is required','error'); return; }
+
+  if (pts > MAX_TRANSACTION_POINTS){
+    toast("Maximum transaction is 300 points", "error");
+    return;
+  }
 
   openConfirm('Confirm Purchase',
     `Deduct <strong>${pts} ${cap(trait)}</strong> from <strong>${s.houses[hIdx].name}</strong> for <em>${item}</em>?`,
@@ -957,16 +1009,7 @@ async function submitShopDeduct() {
 }
 
 function buildLogQuery() {
-  const fh = document.getElementById('logFilterHouse').value;
-  const ft = document.getElementById('logFilterType').value;
   let q = logCol.orderBy('ts', 'desc').limit(LOG_PAGE_SIZE);
-  if (fh !== '' && ft !== '') {
-    q = logCol.where('hIdx', '==', parseInt(fh)).where('type', '==', ft).orderBy('ts', 'desc').limit(LOG_PAGE_SIZE);
-  } else if (fh !== '') {
-    q = logCol.where('hIdx', '==', parseInt(fh)).orderBy('ts', 'desc').limit(LOG_PAGE_SIZE);
-  } else if (ft !== '') {
-    q = logCol.where('type', '==', ft).orderBy('ts', 'desc').limit(LOG_PAGE_SIZE);
-  }
   if (_logLastDoc) q = q.startAfter(_logLastDoc);
   return q;
 }
@@ -1124,6 +1167,19 @@ function closeModal() { document.getElementById('confirmModal').classList.remove
 document.getElementById('confirmBtn').onclick=()=>{ closeModal(); if(_cb)_cb(); };
 
 function cap(s) { return s.charAt(0).toUpperCase()+s.slice(1); }
+
+
+document.addEventListener('keydown', function(e){
+  const isNumberInput = e.target.tagName === 'INPUT'
+  && e.target.type === 'number';
+
+  if(!isNumberInput) return;
+
+  if( e.key === 'e' || e.key === 'E' || e.key === '+'|| e.key === '-'){
+    e.preventDefault();
+  }
+
+});
 
 updateAddBtn();
 initFirebase();
