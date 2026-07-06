@@ -60,8 +60,8 @@
   .landing-sub { font-size: 0.9rem; color: var(--text2); text-align: center; margin-bottom: 3rem; }
 
   .mode-cards {
-    display: grid; grid-template-columns: 1fr 1fr;
-    gap: 1.25rem; max-width: 520px; width: 100%;
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem; max-width: 760px; width: 100%;
   }
 
   .mode-card {
@@ -74,6 +74,7 @@
   .mode-card:hover { transform: translateY(-4px); }
   .mode-card.guest:hover  { border-color: #4FC3F740; }
   .mode-card.master:hover { border-color: #D4AF3740; }
+  .mode-card.occom:hover  { border-color: #26A69A40; }
 
   .mode-card-icon { font-size: 2.4rem; margin-bottom: 1rem; display: block; }
 
@@ -85,6 +86,7 @@
   }
   .mode-card.guest  .mode-card-title { color: #4FC3F7; }
   .mode-card.master .mode-card-title { color: var(--gold); }
+  .mode-card.occom  .mode-card-title { color: #26A69A; }
 
   .mode-card-desc { font-size: 0.78rem; color: var(--text2); line-height: 1.55; margin-bottom: 1rem; }
 
@@ -95,6 +97,7 @@
   }
   .mode-card.guest  .mode-pill { background:#4FC3F712;color:#4FC3F7;border:1px solid #4FC3F725; }
   .mode-card.master .mode-pill { background:#D4AF3712;color:var(--gold);border:1px solid #D4AF3730; }
+  .mode-card.occom  .mode-pill { background:#26A69A12;color:#26A69A;border:1px solid #26A69A30; }
 
   #loginScreen {
     display: none; min-height: 100vh;
@@ -156,6 +159,7 @@
   }
   .mode-badge.guest  { background:#4FC3F712;color:#4FC3F7;border:1px solid #4FC3F730; }
   .mode-badge.master { background:#D4AF3712;color:var(--gold);border:1px solid var(--gold-dim); }
+  .mode-badge.occom  { background:#26A69A12;color:#26A69A;border:1px solid #26A69A50; }
 
   .sync-dot { width:7px;height:7px;border-radius:50%;background:#66BB6A;display:inline-block;margin-right:0.35rem;transition:opacity 0.15s; }
   .sync-dot.flash { animation:syncFlash 0.4s ease; }
@@ -203,10 +207,29 @@
   input:focus { border-color:var(--gold-dim); }
 
   select {
-    background:var(--surface3);border:1px solid #ffffff15;border-radius:8px;
-    color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.9rem;
-    padding:0.5rem 0.85rem;outline:none;cursor:pointer;width:100%;
-    -webkit-appearance:none;transition:border-color 0.15s;
+    background:var(--surface3);
+    border:1px solid #ffffff15;
+    border-radius:8px;
+    color:var(--text);
+    font-family:'DM Sans',sans-serif;
+    font-size:0.9rem;
+    padding:0.5rem 2rem 0.5rem 0.85rem;
+    outline:none;
+    cursor:pointer;
+    width:100%;
+
+    appearance:none;
+    -webkit-appearance:none;
+    -moz-appearance:none;
+
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12'%3E%3Cpath fill='%23D4AF37' d='M2 4l4 4 4-4'/%3E%3C/svg%3E");
+
+    background-repeat:no-repeat;
+    background-position:right 10px center;
+    background-size:12px;
+
+    transition:border-color 0.15s;
   }
   select:focus { border-color:var(--gold-dim); }
 
@@ -257,6 +280,18 @@
   .config-box { background:var(--surface2);border:1px solid #ffffff10;border-radius:12px;padding:1.25rem;margin-top:1.5rem; }
   .divider { border:none;border-top:1px solid #ffffff10;margin:1.5rem 0; }
 
+  .clan-house-group { margin-bottom: 1.75rem; }
+  .clan-house-label {
+    font-family:'Syne',sans-serif; font-size:0.82rem; font-weight:700;
+    letter-spacing:0.09em; text-transform:uppercase;
+    padding-bottom:0.5rem; margin-bottom:1rem;
+    border-bottom:1px solid #ffffff15;
+    display:flex; align-items:center; gap:0.5rem;
+  }
+  .clan-house-label .house-dot { width:9px;height:9px;border-radius:50%; }
+  .clan-cards-row { display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.1rem; }
+  .clan-setup-row { display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.25rem; }
+
   #toast-container { position:fixed;bottom:2rem;right:2rem;z-index:9999;display:flex;flex-direction:column;gap:0.5rem;pointer-events:none; }
   .toast { background:var(--surface2);border:1px solid #ffffff15;border-radius:10px;padding:0.75rem 1.1rem;font-size:0.84rem;max-width:300px;animation:slideIn 0.2s ease;display:flex;align-items:center;gap:0.5rem; }
   .toast.success { border-color:#66BB6A50; }
@@ -278,6 +313,9 @@
   .spinner { width:36px;height:36px;border:3px solid #ffffff20;border-top-color:var(--gold);border-radius:50%;animation:spin 0.8s linear infinite; }
   @keyframes spin { to{transform:rotate(360deg)} }
 
+  @media(max-width:700px) {
+    .mode-cards { grid-template-columns:1fr 1fr; }
+  }
   @media(max-width:560px) {
     .mode-cards { grid-template-columns:1fr; }
     .container { padding:1rem; }
@@ -304,10 +342,16 @@
       <div class="mode-card-desc">View the live scoreboard and key in station points</div>
       <div class="mode-pill">No login required</div>
     </div>
-    <div class="mode-card master" onclick="showLogin()">
+    <div class="mode-card master" onclick="showLogin('master')">
       <span class="mode-card-icon">👑</span>
       <div class="mode-card-title">Main Master</div>
       <div class="mode-card-desc">Full access — shop, transaction log, setup & config</div>
+      <div class="mode-pill">Password required</div>
+    </div>
+    <div class="mode-card occom" onclick="showLogin('occom')">
+      <span class="mode-card-icon">🛡️</span>
+      <div class="mode-card-title">Occom</div>
+      <div class="mode-card-desc">Clan vs clan scoreboard, points, log & setup</div>
       <div class="mode-pill">Password required</div>
     </div>
   </div>
@@ -315,9 +359,9 @@
 
 <div id="loginScreen">
   <div class="login-box">
-    <div class="login-icon">👑</div>
-    <div class="login-title">Main Master Access</div>
-    <div class="login-sub">Enter the master password to unlock all features</div>
+    <div class="login-icon" id="loginIcon">👑</div>
+    <div class="login-title" id="loginTitle">Main Master Access</div>
+    <div class="login-sub" id="loginSub">Enter the master password to unlock all features</div>
     <div class="form-group">
       <input type="password" id="masterPwInput" placeholder="Password" onkeydown="if(event.key==='Enter')attemptLogin()">
     </div>
@@ -344,11 +388,15 @@
   <header>
     <div class="logo">⚔ Mass Game HQ</div>
     <nav class="nav-tabs" id="navTabs">
-      <button class="nav-tab active" data-page="scoreboard" onclick="showPage('scoreboard')">Scoreboard</button>
-      <button class="nav-tab"        data-page="add"        onclick="showPage('add')">Add Points</button>
-      <button class="nav-tab master-only" data-page="shop"  onclick="showPage('shop')">Shop</button>
-      <button class="nav-tab master-only" data-page="log"   onclick="showPage('log')">Log</button>
-      <button class="nav-tab master-only" data-page="setup" onclick="showPage('setup')">Setup</button>
+      <button class="nav-tab active house-mode" data-page="scoreboard" onclick="showPage('scoreboard')">Scoreboard</button>
+      <button class="nav-tab house-mode"        data-page="add"        onclick="showPage('add')">Add Points</button>
+      <button class="nav-tab master-only house-mode" data-page="shop"  onclick="showPage('shop')">Shop</button>
+      <button class="nav-tab master-only house-mode" data-page="log"   onclick="showPage('log')">Log</button>
+      <button class="nav-tab master-only house-mode" data-page="setup" onclick="showPage('setup')">Setup</button>
+      <button class="nav-tab occom-mode hidden" data-page="clanScoreboard" onclick="showPage('clanScoreboard')">Scoreboard</button>
+      <button class="nav-tab occom-mode hidden" data-page="clanAdd"        onclick="showPage('clanAdd')">Add Points</button>
+      <button class="nav-tab occom-mode hidden" data-page="clanLog"        onclick="showPage('clanLog')">Log</button>
+      <button class="nav-tab occom-mode hidden" data-page="clanSetup"      onclick="showPage('clanSetup')">Setup</button>
     </nav>
     <div class="header-right">
       <div class="mode-badge" id="modeBadge"></div>
@@ -409,7 +457,7 @@
         </div>
         <div class="form-group">
           <label class="form-label">Points</label>
-          <input type="number" id="addPoints" min="1" max="9999" value="10">
+          <input type="number" step = "1" inputmode = 'numeric' id="addPoints" min="1" max="300" value="10">
         </div>
         <div class="form-group">
           <label class="form-label">Station / Reason</label>
@@ -447,7 +495,7 @@
         </div>
         <div class="form-group">
           <label class="form-label">Points to Deduct</label>
-          <input type="number" id="shopPoints" min="1" max="9999" value="10">
+          <input type="number" step = "1" inputmode = 'numeric' id="shopPoints" min="1" max="300" value="10">
         </div>
         <div class="form-group">
           <label class="form-label">Item Purchased</label>
@@ -463,15 +511,6 @@
   <div id="page-log" class="container" style="display:none;">
     <div class="scoreboard-header">
       <div class="page-title">Transaction Log</div>
-    </div>
-    <div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:1rem;">
-      <select id="logFilterHouse" onchange="resetLogPagination()" style="width:auto;min-width:150px;"><option value="">All Houses</option></select>
-      <select id="logFilterType"  onchange="resetLogPagination()" style="width:auto;min-width:130px;">
-        <option value="">All Types</option>
-        <option value="add">Added</option>
-        <option value="deduct">Deducted</option>
-        <option value="shop">Shop</option>
-      </select>
     </div>
     <div style="overflow-x:auto;">
       <table class="log-table">
@@ -520,6 +559,124 @@
       </div>
     </div>
   </div>
+
+  <div id="page-clanScoreboard" class="container" style="display:none;">
+    <div class="scoreboard-header">
+      <div class="page-title">🛡️ Clan Scoreboard</div>
+    </div>
+    <div id="clanHouseCards"></div>
+    <div class="action-panel">
+      <div class="panel-title">Clan Rankings</div>
+      <div style="overflow-x:auto;">
+        <table class="log-table">
+          <thead><tr>
+            <th>#</th><th>Clan</th><th>House</th>
+            <th style="color:#4FC3F7">Intel</th>
+            <th style="color:#EF5350">Courage</th>
+            <th style="color:#66BB6A">Agility</th>
+            <th style="color:#FFB300">Luck</th>
+            <th style="color:#AB47BC">Teamwork</th>
+            <th>Total</th>
+          </tr></thead>
+          <tbody id="clanRankBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="page-clanAdd" class="container" style="display:none;">
+    <div class="page-title">Adjust Clan Points</div>
+    <p class="section-sub">Select clan, trait, operation and points amount.</p>
+    <div class="action-panel">
+      <div class="action-grid">
+        <div class="form-group">
+          <label class="form-label">Clan</label>
+          <select id="clanAddClan" onchange="updateClanLiveBalances()"></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Trait</label>
+          <select id="clanAddTrait" onchange="updateClanLiveBalances()">
+            <option value="intelligence">🔵 Intelligence</option>
+            <option value="courage">🔴 Courage</option>
+            <option value="agility">🟢 Agility</option>
+            <option value="luck">🟡 Luck</option>
+            <option value="teamwork">🟣 Teamwork</option>
+          </select>
+          <div class="live-balance" id="clanAddBalance"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Operation</label>
+          <select id="clanAddOp" onchange="updateClanAddBtn()">
+            <option value="add">+ Add points</option>
+            <option value="deduct">− Deduct points</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Points</label>
+          <input type="number" step="1" inputmode="numeric" id="clanAddPoints" min="1" max="300" value="10">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Station / Reason</label>
+          <input type="text" id="clanAddReason" placeholder="e.g. Station 3 — Puzzle">
+        </div>
+        <div class="form-group" style="justify-content:flex-end;">
+          <button class="btn" id="clanAddSubmitBtn" onclick="submitClanAdd()">+ Add Points</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="page-clanLog" class="container" style="display:none;">
+    <div class="scoreboard-header">
+      <div class="page-title">Clan Transaction Log</div>
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="log-table">
+        <thead><tr><th>Time</th><th>Clan</th><th>Trait</th><th>Change</th><th>Type</th><th>Reason / Item</th></tr></thead>
+        <tbody id="clanLogBody"></tbody>
+      </table>
+    </div>
+    <div style="text-align:center;margin-top:1rem;">
+      <button class="btn btn-outline" id="clanLogLoadMore" onclick="loadMoreClanLog()" style="display:none;">Load more</button>
+    </div>
+  </div>
+
+  <div id="page-clanSetup" class="container" style="display:none;">
+    <div class="page-title">Occom Setup & Configuration</div>
+    <p class="section-sub">Manage clan names, starting points and Occom password.</p>
+
+    <div id="clanSetupGrid"></div>
+
+    <div style="margin-top:1.5rem;display:flex;gap:0.75rem;flex-wrap:wrap;">
+      <button class="btn btn-gold" onclick="saveClanSetup()">Save Starting Points</button>
+      <button class="btn btn-outline" onclick="resetAllClanData()" style="color:#EF5350;border-color:#EF535040;">⚠ Reset All Clan Data</button>
+    </div>
+
+    <hr class="divider">
+
+    <div class="config-box">
+      <div class="panel-title" style="margin-bottom:0.75rem;">Clan Names</div>
+      <div id="clanNameFields"></div>
+      <button class="btn btn-outline" onclick="saveClanNames()" style="margin-top:0.75rem;">Save Names</button>
+    </div>
+
+    <hr class="divider">
+
+    <div class="config-box">
+      <div class="panel-title" style="margin-bottom:0.75rem;">🛡️ Occom Password</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:0.75rem;align-items:flex-end;">
+        <div class="form-group">
+          <label class="form-label">New Password</label>
+          <input type="password" id="clanNewPw" placeholder="New password">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirm</label>
+          <input type="password" id="clanConfirmPw" placeholder="Confirm">
+        </div>
+        <button class="btn btn-outline" onclick="changeClanPassword()" style="height:38px;align-self:flex-end;">Update</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -540,6 +697,11 @@ const TRAIT_COLORS  = {intelligence:'#4FC3F7',courage:'#EF5350',agility:'#66BB6A
 const TRAIT_ABBR    = {intelligence:'INT',courage:'COR',agility:'AGI',luck:'LCK',teamwork:'TWK'};
 const TRAIT_EMOJI   = {intelligence:'🔵',courage:'🔴',agility:'🟢',luck:'🟡',teamwork:'🟣'};
 const LOG_PAGE_SIZE = 50;
+const MAX_TRANSACTION_POINTS = 300; //maximum transaction
+const ACTION_COOLDOWN_MS = 10000;
+const CLANS_PER_HOUSE = 3;
+
+
 
 let currentMode = null;
 let liveState = null;
@@ -547,10 +709,23 @@ let db = null;
 let stateRef = null;
 let logCol = null;
 let _processing = false;
+let lastActionTime = 0;
 let _logLastDoc = null;
 let _logHasMore = false;
 let _logEntries = [];
 let _unsubState = null;
+
+// --- Occom (clan vs clan) state ---
+let pendingLoginMode = 'master';
+let liveClanState = null;
+let clanStateRef = null;
+let clanLogCol = null;
+let _clanProcessing = false;
+let clanLastActionTime = 0;
+let _clanLogLastDoc = null;
+let _clanLogHasMore = false;
+let _clanLogEntries = [];
+let _unsubClanState = null;
 
 class InsufficientPointsError extends Error {
   constructor(balance) {
@@ -574,6 +749,31 @@ function getState() {
   return { houses: defaultHouses(), pwHash: null, pwSalt: null };
 }
 
+function defaultClans() {
+  const houseNames = ['House Alpha','House Beta','House Gamma','House Delta','House Omega'];
+  const clans = [];
+  houseNames.forEach((hn, hIdx) => {
+    for (let c = 1; c <= CLANS_PER_HOUSE; c++) {
+      clans.push({
+        name: `${hn} Clan ${c}`,
+        house: hIdx,
+        points: { intelligence:0, courage:0, agility:0, luck:0, teamwork:0 }
+      });
+    }
+  });
+  return clans;
+}
+
+function getClanState() {
+  if (liveClanState) return liveClanState;
+  return { clans: defaultClans(), pwHash: null, pwSalt: null };
+}
+
+function houseNameFor(hIdx) {
+  const s = getState();
+  return (s.houses[hIdx] && s.houses[hIdx].name) || `House ${hIdx+1}`;
+}
+
 async function hashPassword(password, salt) {
   const enc = new TextEncoder();
   const data = enc.encode(salt + password + salt);
@@ -585,9 +785,17 @@ function generateSalt() {
   return Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b=>b.toString(16).padStart(2,'0')).join('');
 }
 
-const _login = { count:0, lockedUntil:0 };
+const _logins = {
+  master: { count:0, lockedUntil:0 },
+  occom:  { count:0, lockedUntil:0 }
+};
 const MAX_ATTEMPTS = 5;
 const LOCKOUT_MS = 30000;
+
+const LOGIN_COPY = {
+  master: { icon:'👑', title:'Main Master Access', sub:'Enter the master password to unlock all features' },
+  occom:  { icon:'🛡️', title:'Occom Access', sub:'Enter the Occom password to manage clan vs clan points' }
+};
 
 function useEmulator() {
   return new URLSearchParams(location.search).has('useEmulator') ||
@@ -612,8 +820,12 @@ async function initFirebase() {
     }
     stateRef = db.collection('massgame').doc('state');
     logCol = stateRef.collection('log');
+    clanStateRef = db.collection('massgame').doc('clanState');
+    clanLogCol = clanStateRef.collection('log');
     await ensureStateDoc();
+    await ensureClanStateDoc();
     subscribeState();
+    subscribeClanState();
   } catch (e) {
     console.error(e);
     toast('Failed to connect — check Firebase config', 'error');
@@ -648,6 +860,45 @@ function subscribeState() {
     if (setupVisible) renderSetup();
     updateLiveBalances();
     if (currentMode) populateHouseSelects();
+    // house names can feed clan group labels in Occom mode
+    if (currentMode === 'occom') {
+      const clanScoreVisible = document.getElementById('page-clanScoreboard').style.display !== 'none';
+      const clanSetupVisible = document.getElementById('page-clanSetup').style.display !== 'none';
+      if (clanScoreVisible) renderClanScoreboard();
+      if (clanSetupVisible) renderClanSetup();
+    }
+  }, err => {
+    console.error(err);
+    toast('Connection lost — retrying…', 'warning');
+  });
+}
+
+async function ensureClanStateDoc() {
+  const snap = await clanStateRef.get();
+  if (!snap.exists) {
+    const salt = generateSalt();
+    const hash = await hashPassword('admin1234', salt);
+    await clanStateRef.set({ clans: defaultClans(), pwHash: hash, pwSalt: salt });
+  }
+}
+
+function subscribeClanState() {
+  if (_unsubClanState) _unsubClanState();
+  _unsubClanState = clanStateRef.onSnapshot(snap => {
+    if (!snap.exists) return;
+    const data = snap.data();
+    liveClanState = {
+      clans: data.clans || defaultClans(),
+      pwHash: data.pwHash,
+      pwSalt: data.pwSalt
+    };
+    flashSyncDot();
+    const scoreVisible = document.getElementById('page-clanScoreboard').style.display !== 'none';
+    const setupVisible = document.getElementById('page-clanSetup').style.display !== 'none';
+    if (scoreVisible) renderClanScoreboard();
+    if (setupVisible) renderClanSetup();
+    updateClanLiveBalances();
+    if (currentMode === 'occom') populateClanSelects();
   }, err => {
     console.error(err);
     toast('Connection lost — retrying…', 'warning');
@@ -675,8 +926,23 @@ function setProcessing(on) {
   });
 }
 
+function setClanProcessing(on) {
+  _clanProcessing = on;
+  const el = document.getElementById('clanAddSubmitBtn');
+  if (el) {
+    el.disabled = on;
+    if (on) { el.dataset.prevText = el.textContent; el.textContent = 'Processing…'; }
+    else if (el.dataset.prevText) { el.textContent = el.dataset.prevText; }
+  }
+}
+
 async function applyPointTransaction({ hIdx, trait, change, type, reason }) {
   const pts = Math.abs(change);
+
+  if(pts> 300){
+      throw new Error("Transacation exceeds 300 point limit");
+    }
+
   const isDeduct = change < 0;
 
   await db.runTransaction(async transaction => {
@@ -722,9 +988,66 @@ async function deleteAllLogEntries() {
   }
 }
 
+async function applyClanPointTransaction({ cIdx, trait, change, type, reason }) {
+  const pts = Math.abs(change);
+
+  if (pts > MAX_TRANSACTION_POINTS) {
+    throw new Error("Transaction exceeds 300 point limit");
+  }
+
+  const isDeduct = change < 0;
+
+  await db.runTransaction(async transaction => {
+    const snap = await transaction.get(clanStateRef);
+    if (!snap.exists) throw new Error('Clan state not found');
+    const data = snap.data();
+    const clans = JSON.parse(JSON.stringify(data.clans || defaultClans()));
+    const balance = clans[cIdx].points[trait] || 0;
+
+    if (isDeduct && balance < pts) {
+      throw new InsufficientPointsError(balance);
+    }
+
+    clans[cIdx].points[trait] = balance + change;
+    transaction.update(clanStateRef, { clans });
+
+    const logRef = clanLogCol.doc();
+    transaction.set(logRef, {
+      ts: new Date().toISOString(),
+      cIdx,
+      clan: clans[cIdx].name,
+      trait,
+      change,
+      type,
+      reason
+    });
+  });
+}
+
+async function updateClanStateDoc(fields) {
+  await clanStateRef.update(fields);
+}
+
+async function deleteAllClanLogEntries() {
+  let hasMore = true;
+  while (hasMore) {
+    const snap = await clanLogCol.limit(500).get();
+    if (snap.empty) { hasMore = false; break; }
+    const batch = db.batch();
+    snap.docs.forEach(d => batch.delete(d.ref));
+    await batch.commit();
+    hasMore = snap.size === 500;
+  }
+}
+
 function enterGuest() { currentMode='guest'; startApp(); }
 
-function showLogin() {
+function showLogin(mode) {
+  pendingLoginMode = mode === 'occom' ? 'occom' : 'master';
+  const copy = LOGIN_COPY[pendingLoginMode];
+  document.getElementById('loginIcon').textContent = copy.icon;
+  document.getElementById('loginTitle').textContent = copy.title;
+  document.getElementById('loginSub').textContent = copy.sub;
   document.getElementById('landing').style.display='none';
   document.getElementById('loginScreen').style.display='flex';
   setTimeout(()=>document.getElementById('masterPwInput').focus(),100);
@@ -736,14 +1059,17 @@ async function attemptLogin() {
   const pw = input.value;
   input.value = '';
 
-  if (Date.now() < _login.lockedUntil) {
-    const secs = Math.ceil((_login.lockedUntil - Date.now()) / 1000);
+  const mode = pendingLoginMode;
+  const login = _logins[mode];
+
+  if (Date.now() < login.lockedUntil) {
+    const secs = Math.ceil((login.lockedUntil - Date.now()) / 1000);
     errEl.textContent = `Too many attempts. Wait ${secs}s.`;
     return;
   }
   if (!pw) { errEl.textContent = 'Enter a password.'; return; }
 
-  const s = getState();
+  const s = mode === 'occom' ? getClanState() : getState();
   if (!s.pwSalt || !s.pwHash) {
     errEl.textContent = 'Server not ready — try again.';
     return;
@@ -751,18 +1077,18 @@ async function attemptLogin() {
   const hash = await hashPassword(pw, s.pwSalt);
 
   if (hash === s.pwHash) {
-    _login.count = 0;
-    _login.lockedUntil = 0;
-    currentMode = 'master';
+    login.count = 0;
+    login.lockedUntil = 0;
+    currentMode = mode;
     document.getElementById('loginScreen').style.display = 'none';
     errEl.textContent = '';
     startApp();
   } else {
-    _login.count++;
-    const remaining = MAX_ATTEMPTS - _login.count;
-    if (_login.count >= MAX_ATTEMPTS) {
-      _login.lockedUntil = Date.now() + LOCKOUT_MS;
-      _login.count = 0;
+    login.count++;
+    const remaining = MAX_ATTEMPTS - login.count;
+    if (login.count >= MAX_ATTEMPTS) {
+      login.lockedUntil = Date.now() + LOCKOUT_MS;
+      login.count = 0;
       errEl.textContent = 'Too many failed attempts. Locked for 30 seconds.';
     } else {
       errEl.textContent = `Incorrect password. ${remaining} attempt${remaining===1?'':'s'} remaining.`;
@@ -783,18 +1109,32 @@ function startApp() {
   document.getElementById('loginScreen').style.display='none';
   document.getElementById('app').style.display='block';
   applyModeUI();
-  populateHouseSelects();
-  showPage('scoreboard');
+  if (currentMode === 'occom') {
+    populateClanSelects();
+    showPage('clanScoreboard');
+  } else {
+    populateHouseSelects();
+    showPage('scoreboard');
+  }
 }
 
 function applyModeUI() {
   const badge=document.getElementById('modeBadge');
+  document.querySelectorAll('.house-mode').forEach(t=>{
+    t.classList.toggle('hidden', currentMode==='occom');
+  });
   document.querySelectorAll('.master-only').forEach(t=>{
     t.classList.toggle('hidden', currentMode!=='master');
+  });
+  document.querySelectorAll('.occom-mode').forEach(t=>{
+    t.classList.toggle('hidden', currentMode!=='occom');
   });
   if (currentMode==='master') {
     badge.textContent='👑 Main Master';
     badge.className='mode-badge master';
+  } else if (currentMode==='occom') {
+    badge.textContent='🛡️ Occom';
+    badge.className='mode-badge occom';
   } else {
     badge.innerHTML='<span class="sync-dot"></span>Game Master';
     badge.className='mode-badge guest';
@@ -807,8 +1147,13 @@ function exitToLanding() {
   document.getElementById('landing').style.display='flex';
 }
 
+const CLAN_PAGES = ['clanScoreboard','clanAdd','clanLog','clanSetup'];
+const HOUSE_PAGES = ['scoreboard','add','shop','log','setup'];
+
 function showPage(name) {
   if (currentMode==='guest' && ['shop','log','setup'].includes(name)) return;
+  if (currentMode!=='occom' && CLAN_PAGES.includes(name)) return;
+  if (currentMode==='occom' && HOUSE_PAGES.includes(name)) return;
   document.querySelectorAll('[id^="page-"]').forEach(el=>el.style.display='none');
   document.getElementById('page-'+name).style.display='block';
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.toggle('active',t.dataset.page===name));
@@ -816,6 +1161,10 @@ function showPage(name) {
   if (name==='log') { resetLogPagination(); renderLog(); }
   if (name==='setup') renderSetup();
   if (name==='add'||name==='shop') { populateHouseSelects(); updateLiveBalances(); }
+  if (name==='clanScoreboard') renderClanScoreboard();
+  if (name==='clanLog') { resetClanLogPagination(); renderClanLog(); }
+  if (name==='clanSetup') renderClanSetup();
+  if (name==='clanAdd') { populateClanSelects(); updateClanLiveBalances(); }
 }
 
 function renderScoreboard() {
@@ -859,8 +1208,7 @@ function populateHouseSelects() {
     const el=document.getElementById(id); if(!el) return;
     el.innerHTML=s.houses.map((h,i)=>`<option value="${i}">${h.name}</option>`).join('');
   });
-  const lf=document.getElementById('logFilterHouse');
-  if(lf){ const cur=lf.value; lf.innerHTML='<option value="">All Houses</option>'+s.houses.map((h,i)=>`<option value="${i}">${h.name}</option>`).join(''); lf.value=cur; }
+  
 }
 
 function updateLiveBalances() {
@@ -881,6 +1229,102 @@ function updateLiveBalances() {
   }
 }
 
+
+
+function renderClanScoreboard() {
+  const cs = getClanState();
+  const mx = {};
+  TRAITS.forEach(t => { mx[t] = Math.max(...cs.clans.map(c => c.points[t] || 0), 1); });
+
+  const byHouse = {};
+  cs.clans.forEach((c, i) => {
+    const h = c.house ?? 0;
+    if (!byHouse[h]) byHouse[h] = [];
+    byHouse[h].push({ ...c, idx: i });
+  });
+  const houseOrder = Object.keys(byHouse).map(Number).sort((a,b)=>a-b);
+
+  document.getElementById('clanHouseCards').innerHTML = houseOrder.map(h => {
+    const color = HOUSE_COLORS[h] || '#888';
+    const cardsHtml = byHouse[h].map(c => {
+      const total = TRAITS.reduce((a,t)=>a+(c.points[t]||0),0);
+      const bars = TRAITS.map(t=>{
+        const v = c.points[t]||0;
+        return `<div class="trait-row">
+          <span style="font-size:0.68rem;font-weight:700;color:${TRAIT_COLORS[t]};min-width:28px;">${TRAIT_ABBR[t]}</span>
+          <div class="trait-bar-wrap"><div class="trait-bar" style="width:${Math.round(v/mx[t]*100)}%;background:${TRAIT_COLORS[t]};"></div></div>
+          <span class="trait-val">${v}</span>
+        </div>`;
+      }).join('');
+      return `<div class="house-card">
+        <div class="house-card-header">
+          <div class="house-dot" style="background:${color};"></div>
+          <span class="house-name" style="color:${color};">${c.name}</span>
+          <span class="house-total">${total}</span>
+        </div>
+        <div class="house-traits">${bars}</div>
+      </div>`;
+    }).join('');
+    return `<div class="clan-house-group">
+      <div class="clan-house-label" style="color:${color};"><span class="house-dot" style="background:${color};"></span>${houseNameFor(h)}</div>
+      <div class="clan-cards-row">${cardsHtml}</div>
+    </div>`;
+  }).join('');
+
+  const ranked = cs.clans.map((c,i)=>({...c, idx:i, total: TRAITS.reduce((a,t)=>a+(c.points[t]||0),0)})).sort((a,b)=>b.total-a.total);
+  document.getElementById('clanRankBody').innerHTML = ranked.map((c,ri)=>`<tr>
+    <td class="${ri<3?'rank-'+(ri+1):''}" style="font-weight:700;">${ri+1}</td>
+    <td style="font-weight:500;color:${HOUSE_COLORS[c.house]||'#888'};">${c.name}</td>
+    <td style="color:var(--text2);font-size:0.82rem;">${houseNameFor(c.house)}</td>
+    ${TRAITS.map(t=>`<td>${c.points[t]||0}</td>`).join('')}
+    <td style="font-weight:700;color:var(--gold);">${c.total}</td>
+  </tr>`).join('');
+}
+
+function populateClanSelects() {
+  const cs = getClanState();
+  const el = document.getElementById('clanAddClan');
+  if (!el) return;
+  const byHouse = {};
+  cs.clans.forEach((c,i)=>{
+    const h = c.house ?? 0;
+    if (!byHouse[h]) byHouse[h] = [];
+    byHouse[h].push({ ...c, idx:i });
+  });
+  const houseOrder = Object.keys(byHouse).map(Number).sort((a,b)=>a-b);
+  el.innerHTML = houseOrder.map(h =>
+    `<optgroup label="${houseNameFor(h)}">${byHouse[h].map(c=>`<option value="${c.idx}">${c.name}</option>`).join('')}</optgroup>`
+  ).join('');
+}
+
+function updateClanLiveBalances() {
+  const cs = getClanState();
+  const clanEl = document.getElementById('clanAddClan');
+  const traitEl = document.getElementById('clanAddTrait');
+  const balEl = document.getElementById('clanAddBalance');
+  if (clanEl && traitEl && balEl && cs.clans[clanEl.value]) {
+    const bal = cs.clans[parseInt(clanEl.value)].points[traitEl.value] || 0;
+    balEl.textContent = `Current balance: ${bal}`;
+  }
+}
+
+function canPerformAction(){
+  const now = Date.now();
+
+  if (now - lastActionTime < ACTION_COOLDOWN_MS){
+    const remaining = Math.ceil(
+      (ACTION_COOLDOWN_MS - (now - lastActionTime))/1000
+    );
+
+    toast(`please wait ${remaining}s before submitting again`,"warning");
+    return false;
+  }
+
+  lastActionTime = now;
+  return true;
+}
+
+
 function updateAddBtn() {
   const op=document.getElementById('addOp').value;
   const btn=document.getElementById('addSubmitBtn');
@@ -889,7 +1333,10 @@ function updateAddBtn() {
 }
 
 async function submitAdd() {
+  if (!canPerformAction()) return;
+
   if (_processing) return;
+
   const hIdx=parseInt(document.getElementById('addHouse').value);
   const trait=document.getElementById('addTrait').value;
   const pts=parseInt(document.getElementById('addPoints').value);
@@ -898,6 +1345,10 @@ async function submitAdd() {
 
   if(isNaN(pts)||pts<=0){ toast('Enter a valid positive number','error'); return; }
 
+  if (pts > MAX_TRANSACTION_POINTS){
+    toast("Maximum transaction is 300 points", "error");
+    return;
+  }
   setProcessing(true);
   try {
     const change = op==='add' ? pts : -pts;
@@ -921,7 +1372,72 @@ async function submitAdd() {
   }
 }
 
+function canPerformClanAction(){
+  const now = Date.now();
+
+  if (now - clanLastActionTime < ACTION_COOLDOWN_MS){
+    const remaining = Math.ceil(
+      (ACTION_COOLDOWN_MS - (now - clanLastActionTime))/1000
+    );
+
+    toast(`please wait ${remaining}s before submitting again`,"warning");
+    return false;
+  }
+
+  clanLastActionTime = now;
+  return true;
+}
+
+function updateClanAddBtn() {
+  const op=document.getElementById('clanAddOp').value;
+  const btn=document.getElementById('clanAddSubmitBtn');
+  if(op==='deduct') { btn.style.cssText='background:#EF535020;color:#EF5350;border:1px solid #EF535040;'; btn.textContent='− Deduct Points'; }
+  else              { btn.style.cssText='background:#66BB6A20;color:#66BB6A;border:1px solid #66BB6A40;'; btn.textContent='+ Add Points'; }
+}
+
+async function submitClanAdd() {
+  if (!canPerformClanAction()) return;
+
+  if (_clanProcessing) return;
+
+  const cIdx=parseInt(document.getElementById('clanAddClan').value);
+  const trait=document.getElementById('clanAddTrait').value;
+  const pts=parseInt(document.getElementById('clanAddPoints').value);
+  const reason=document.getElementById('clanAddReason').value.trim()||'Station';
+  const op=document.getElementById('clanAddOp').value;
+
+  if(isNaN(pts)||pts<=0){ toast('Enter a valid positive number','error'); return; }
+
+  if (pts > MAX_TRANSACTION_POINTS){
+    toast("Maximum transaction is 300 points", "error");
+    return;
+  }
+  setClanProcessing(true);
+  try {
+    const change = op==='add' ? pts : -pts;
+    await applyClanPointTransaction({
+      cIdx, trait, change,
+      type: op==='add' ? 'add' : 'deduct',
+      reason
+    });
+    toast(`${op==='add'?'+':'−'}${pts} ${cap(trait)} → ${getClanState().clans[cIdx].name}`, op==='add'?'success':'warning');
+    document.getElementById('clanAddPoints').value=10;
+    document.getElementById('clanAddReason').value='';
+  } catch (e) {
+    if (e instanceof InsufficientPointsError) {
+      toast(`⚠ Insufficient points — another station spent points simultaneously. Current balance: ${e.balance}.`, 'error');
+    } else {
+      toast(e.message || 'Transaction failed', 'error');
+    }
+  } finally {
+    setClanProcessing(false);
+    updateClanAddBtn();
+  }
+}
+
 async function submitShopDeduct() {
+  if (!canPerformAction()) return;
+
   const hIdx=parseInt(document.getElementById('shopHouse').value);
   const trait=document.getElementById('shopTrait').value;
   const pts=parseInt(document.getElementById('shopPoints').value);
@@ -930,6 +1446,11 @@ async function submitShopDeduct() {
 
   if(isNaN(pts)||pts<=0){ toast('Enter valid points','error'); return; }
   if(!item){ toast('Item name is required','error'); return; }
+
+  if (pts > MAX_TRANSACTION_POINTS){
+    toast("Maximum transaction is 300 points", "error");
+    return;
+  }
 
   openConfirm('Confirm Purchase',
     `Deduct <strong>${pts} ${cap(trait)}</strong> from <strong>${s.houses[hIdx].name}</strong> for <em>${item}</em>?`,
@@ -957,16 +1478,7 @@ async function submitShopDeduct() {
 }
 
 function buildLogQuery() {
-  const fh = document.getElementById('logFilterHouse').value;
-  const ft = document.getElementById('logFilterType').value;
   let q = logCol.orderBy('ts', 'desc').limit(LOG_PAGE_SIZE);
-  if (fh !== '' && ft !== '') {
-    q = logCol.where('hIdx', '==', parseInt(fh)).where('type', '==', ft).orderBy('ts', 'desc').limit(LOG_PAGE_SIZE);
-  } else if (fh !== '') {
-    q = logCol.where('hIdx', '==', parseInt(fh)).orderBy('ts', 'desc').limit(LOG_PAGE_SIZE);
-  } else if (ft !== '') {
-    q = logCol.where('type', '==', ft).orderBy('ts', 'desc').limit(LOG_PAGE_SIZE);
-  }
   if (_logLastDoc) q = q.startAfter(_logLastDoc);
   return q;
 }
@@ -1011,6 +1523,59 @@ function formatLogRow(e) {
   return `<tr>
     <td style="color:var(--text2);font-size:0.78rem;white-space:nowrap;">${time}</td>
     <td style="font-weight:500;">${e.house}</td>
+    <td><span style="color:${TRAIT_COLORS[e.trait]};font-size:0.82rem;">${TRAIT_EMOJI[e.trait]} ${cap(e.trait)}</span></td>
+    <td style="font-weight:700;color:${color};">${sign}${e.change}</td>
+    <td>${badge}</td>
+    <td style="color:var(--text2);font-size:0.82rem;">${e.reason||''}</td>
+  </tr>`;
+}
+
+function buildClanLogQuery() {
+  let q = clanLogCol.orderBy('ts', 'desc').limit(LOG_PAGE_SIZE);
+  if (_clanLogLastDoc) q = q.startAfter(_clanLogLastDoc);
+  return q;
+}
+
+function resetClanLogPagination() {
+  _clanLogLastDoc = null;
+  _clanLogEntries = [];
+  _clanLogHasMore = false;
+}
+
+async function renderClanLog() {
+  populateClanSelects();
+  if (!clanLogCol) return;
+  try {
+    const snap = await buildClanLogQuery().get();
+    const entries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    if (_clanLogLastDoc) {
+      _clanLogEntries = _clanLogEntries.concat(entries);
+    } else {
+      _clanLogEntries = entries;
+    }
+    _clanLogHasMore = snap.docs.length === LOG_PAGE_SIZE;
+    if (snap.docs.length) _clanLogLastDoc = snap.docs[snap.docs.length - 1];
+
+    document.getElementById('clanLogBody').innerHTML = _clanLogEntries.map(e => formatClanLogRow(e)).join('') ||
+      '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:2rem;">No entries yet</td></tr>';
+    document.getElementById('clanLogLoadMore').style.display = _clanLogHasMore ? 'inline-block' : 'none';
+  } catch (e) {
+    console.error(e);
+    toast('Failed to load log', 'error');
+  }
+}
+
+function loadMoreClanLog() { renderClanLog(); }
+
+function formatClanLogRow(e) {
+  const d=new Date(e.ts);
+  const time=d.toLocaleDateString()+' '+d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  const color=e.change>0?'#66BB6A':'#EF5350';
+  const sign=e.change>0?'+':'';
+  const badge=e.type==='add'?'<span class="badge badge-add">▲ Added</span>':'<span class="badge badge-deduct">▼ Deducted</span>';
+  return `<tr>
+    <td style="color:var(--text2);font-size:0.78rem;white-space:nowrap;">${time}</td>
+    <td style="font-weight:500;">${e.clan}</td>
     <td><span style="color:${TRAIT_COLORS[e.trait]};font-size:0.82rem;">${TRAIT_EMOJI[e.trait]} ${cap(e.trait)}</span></td>
     <td style="font-weight:700;color:${color};">${sign}${e.change}</td>
     <td>${badge}</td>
@@ -1104,6 +1669,108 @@ function resetAllData() {
   });
 }
 
+function renderClanSetup() {
+  const cs = getClanState();
+  const byHouse = {};
+  cs.clans.forEach((c,i)=>{
+    const h = c.house ?? 0;
+    if (!byHouse[h]) byHouse[h] = [];
+    byHouse[h].push({ ...c, idx:i });
+  });
+  const houseOrder = Object.keys(byHouse).map(Number).sort((a,b)=>a-b);
+
+  document.getElementById('clanSetupGrid').innerHTML = houseOrder.map(h=>{
+    const color = HOUSE_COLORS[h] || '#888';
+    const cards = byHouse[h].map(c=>{
+      return `<div class="house-setup-card" style="--house-color:${color};">
+        <div class="house-label">${c.name}</div>
+        ${TRAITS.map(t=>`<div class="trait-input-row">
+          <div class="trait-icon" style="background:${TRAIT_COLORS[t]}20;color:${TRAIT_COLORS[t]};">${TRAIT_ABBR[t]}</div>
+          <span class="trait-name">${cap(t)}</span>
+          <input type="number" style="width:80px;text-align:center;" min="0" max="99999" id="clansetup_${c.idx}_${t}" value="${c.points[t]||0}">
+        </div>`).join('')}
+      </div>`;
+    }).join('');
+    return `<div class="clan-house-group">
+      <div class="clan-house-label" style="color:${color};"><span class="house-dot" style="background:${color};"></span>${houseNameFor(h)}</div>
+      <div class="clan-setup-row">${cards}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('clanNameFields').innerHTML = houseOrder.map(h=>{
+    const color = HOUSE_COLORS[h] || '#888';
+    const fields = byHouse[h].map((c,ci)=>`<div class="form-group">
+      <label class="form-label" style="color:${color};">${houseNameFor(h)} — Clan ${ci+1}</label>
+      <input type="text" id="clanname_${c.idx}" value="${c.name}">
+    </div>`).join('');
+    return `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:0.75rem;margin-bottom:0.75rem;">${fields}</div>`;
+  }).join('');
+}
+
+async function saveClanSetup() {
+  const cs = getClanState();
+  const clans = JSON.parse(JSON.stringify(cs.clans));
+  clans.forEach((c,i)=>TRAITS.forEach(t=>{
+    const el=document.getElementById(`clansetup_${i}_${t}`);
+    if(el) c.points[t]=Math.max(0,parseInt(el.value)||0);
+  }));
+  try {
+    await updateClanStateDoc({ clans });
+    toast('Starting points saved','success');
+  } catch (e) {
+    toast('Save failed', 'error');
+  }
+}
+
+async function saveClanNames() {
+  const cs = getClanState();
+  const clans = JSON.parse(JSON.stringify(cs.clans));
+  clans.forEach((c,i)=>{ const el=document.getElementById(`clanname_${i}`); if(el&&el.value.trim()) c.name=el.value.trim(); });
+  try {
+    await updateClanStateDoc({ clans });
+    renderClanSetup();
+    populateClanSelects();
+    toast('Clan names updated','success');
+  } catch (e) {
+    toast('Save failed', 'error');
+  }
+}
+
+async function changeClanPassword() {
+  const np=document.getElementById('clanNewPw').value;
+  const cp=document.getElementById('clanConfirmPw').value;
+  if(!np){ toast('Password cannot be empty','error'); return; }
+  if(np.length < 6){ toast('Password must be at least 6 characters','error'); return; }
+  if(np!==cp){ toast('Passwords do not match','error'); return; }
+  const salt = generateSalt();
+  const hash = await hashPassword(np, salt);
+  try {
+    await updateClanStateDoc({ pwHash: hash, pwSalt: salt });
+    document.getElementById('clanNewPw').value='';
+    document.getElementById('clanConfirmPw').value='';
+    toast('Occom password updated','success');
+  } catch (e) {
+    toast('Update failed', 'error');
+  }
+}
+
+function resetAllClanData() {
+  openConfirm('⚠ Reset All Clan Data','This will clear <strong>all clan points and logs</strong>. Clan names and password are kept. This cannot be undone.',async()=>{
+    const cs = getClanState();
+    const clans = JSON.parse(JSON.stringify(cs.clans));
+    clans.forEach(c=>TRAITS.forEach(t=>c.points[t]=0));
+    try {
+      await updateClanStateDoc({ clans });
+      await deleteAllClanLogEntries();
+      resetClanLogPagination();
+      renderClanSetup();
+      toast('All clan data reset','warning');
+    } catch (e) {
+      toast('Reset failed', 'error');
+    }
+  });
+}
+
 function toast(msg,type='') {
   const el=document.createElement('div');
   el.className='toast '+type;
@@ -1125,7 +1792,21 @@ document.getElementById('confirmBtn').onclick=()=>{ closeModal(); if(_cb)_cb(); 
 
 function cap(s) { return s.charAt(0).toUpperCase()+s.slice(1); }
 
+
+document.addEventListener('keydown', function(e){
+  const isNumberInput = e.target.tagName === 'INPUT'
+  && e.target.type === 'number';
+
+  if(!isNumberInput) return;
+
+  if( e.key === 'e' || e.key === 'E' || e.key === '+'|| e.key === '-'){
+    e.preventDefault();
+  }
+
+});
+
 updateAddBtn();
+updateClanAddBtn();
 initFirebase();
 </script>
 </body>

@@ -10,5 +10,14 @@ service cloud.firestore {
       allow create: if true;
       allow update, delete: if true;
     }
+    match /massgame/clanState {
+      allow read: if true;
+      allow write: if true;
+    }
+    match /massgame/clanState/log/{entry} {
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if true;
+    }
   }
 }
