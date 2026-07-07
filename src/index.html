@@ -26,12 +26,14 @@
   body { font-family: 'DM Sans', sans-serif; background: var(--ink); color: var(--text); min-height: 100vh; }
 
   #landing {
+    display: none;
     min-height: 100vh;
-    display: flex; flex-direction: column;
+    flex-direction: column;
     align-items: center; justify-content: center;
     padding: 2rem;
     position: relative; overflow: hidden;
   }
+  #landing.show { display: flex; }
 
   #landing::before {
     content: '';
@@ -331,6 +333,22 @@
   <div style="font-size:0.85rem;color:var(--text2);">Connecting to server…</div>
 </div>
 
+<div id="orgLoginScreen" style="min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:2rem;">
+  <div class="login-box">
+    <div class="login-icon">🔐</div>
+    <div class="login-title">Organizer Sign In</div>
+    <div class="login-sub">Sign in with your organizer account to continue</div>
+    <div class="form-group" style="margin-bottom:0.75rem;">
+      <input type="text" id="orgEmailInput" placeholder="Email" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('orgPwInput').focus()">
+    </div>
+    <div class="form-group">
+      <input type="password" id="orgPwInput" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter')attemptOrgLogin()">
+    </div>
+    <div class="login-error" id="orgLoginError"></div>
+    <button class="btn btn-gold" onclick="attemptOrgLogin()" style="width:100%;margin-top:0.85rem;">Sign In →</button>
+  </div>
+</div>
+
 <div id="landing">
   <div class="landing-eyebrow">⚔ Helix FOP 26 HQ</div>
   <h1 class="landing-title">Central Points<br>System</h1>
@@ -401,6 +419,7 @@
     <div class="header-right">
       <div class="mode-badge" id="modeBadge"></div>
       <button class="btn-exit" onclick="exitToLanding()">Exit</button>
+      <button class="btn-exit" onclick="orgSignOut()">Sign Out</button>
     </div>
   </header>
 
@@ -680,6 +699,7 @@
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script>
 const firebaseConfig = {
@@ -802,6 +822,9 @@ function useEmulator() {
     location.hostname === 'localhost' || location.hostname === '127.0.0.1';
 }
 
+let auth = null;
+let firestoreReady = false;
+
 async function initFirebase() {
   document.getElementById('loadingOverlay').classList.add('show');
   try {
@@ -809,29 +832,85 @@ async function initFirebase() {
       Object.assign(firebaseConfig, firebaseConfigOverride);
     }
     firebase.initializeApp(firebaseConfig);
+    auth = firebase.auth();
     db = firebase.firestore();
     if (useEmulator()) {
       db.useEmulator('127.0.0.1', 8080);
+      auth.useEmulator('http://127.0.0.1:9099');
     }
     try {
       await db.enablePersistence({ synchronizeTabs: true });
     } catch (e) {
       if (e.code !== 'failed-precondition' && e.code !== 'unimplemented') console.warn('Persistence:', e);
     }
-    stateRef = db.collection('massgame').doc('state');
-    logCol = stateRef.collection('log');
-    clanStateRef = db.collection('massgame').doc('clanState');
-    clanLogCol = clanStateRef.collection('log');
-    await ensureStateDoc();
-    await ensureClanStateDoc();
-    subscribeState();
-    subscribeClanState();
+    auth.onAuthStateChanged(onOrgAuthChanged);
   } catch (e) {
     console.error(e);
     toast('Failed to connect — check Firebase config', 'error');
+    document.getElementById('loadingOverlay').classList.remove('show');
+  }
+}
+
+async function onOrgAuthChanged(user) {
+  if (user) {
+    document.getElementById('orgLoginScreen').style.display = 'none';
+    document.getElementById('landing').style.display = 'flex';
+    if (!firestoreReady) {
+      try {
+        stateRef = db.collection('massgame').doc('state');
+        logCol = stateRef.collection('log');
+        clanStateRef = db.collection('massgame').doc('clanState');
+        clanLogCol = clanStateRef.collection('log');
+        await ensureStateDoc();
+        await ensureClanStateDoc();
+        subscribeState();
+        subscribeClanState();
+        firestoreReady = true;
+      } catch (e) {
+        console.error(e);
+        toast('Failed to load game data', 'error');
+      }
+    }
+    document.getElementById('loadingOverlay').classList.remove('show');
+  } else {
+    // Signed out (or never signed in) — tear down live app state and
+    // show the organizer sign-in screen. Mode passwords (MM/OCCOM)
+    // are irrelevant until an organizer is authenticated.
+    if (_unsubState) { _unsubState(); _unsubState = null; }
+    if (_unsubClanState) { _unsubClanState(); _unsubClanState = null; }
+    firestoreReady = false;
+    currentMode = null;
+    liveState = null;
+    liveClanState = null;
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('landing').style.display = 'none';
+    document.getElementById('orgLoginScreen').style.display = 'flex';
+    document.getElementById('loadingOverlay').classList.remove('show');
+  }
+}
+
+async function attemptOrgLogin() {
+  const errEl = document.getElementById('orgLoginError');
+  const email = document.getElementById('orgEmailInput').value.trim();
+  const pw = document.getElementById('orgPwInput').value;
+  errEl.textContent = '';
+  if (!email || !pw) { errEl.textContent = 'Enter email and password.'; return; }
+  document.getElementById('loadingOverlay').classList.add('show');
+  try {
+    await auth.signInWithEmailAndPassword(email, pw);
+    document.getElementById('orgPwInput').value = '';
+  } catch (e) {
+    console.error(e);
+    errEl.textContent = 'Sign in failed — check email/password.';
   } finally {
     document.getElementById('loadingOverlay').classList.remove('show');
   }
+}
+
+function orgSignOut() {
+  exitToLanding();
+  auth.signOut();
 }
 
 async function ensureStateDoc() {

@@ -1,23 +1,13 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /massgame/state {
-      allow read: if true;
-      allow write: if true;
-    }
-    match /massgame/state/log/{entry} {
-      allow read: if true;
-      allow create: if true;
-      allow update, delete: if true;
-    }
-    match /massgame/clanState {
-      allow read: if true;
-      allow write: if true;
-    }
-    match /massgame/clanState/log/{entry} {
-      allow read: if true;
-      allow create: if true;
-      allow update, delete: if true;
+    // Require a signed-in organizer for every read and write.
+    // Firebase Authentication is the real enforcement layer — the
+    // MM/OCCOM passwords stored in these documents are only a
+    // soft, in-app boundary between already-authenticated organizers.
+    match /massgame/{document=**} {
+      allow read, write: if request.auth != null;
     }
   }
 }
+
